@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.cobblepass.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CraftingResultSlotMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
