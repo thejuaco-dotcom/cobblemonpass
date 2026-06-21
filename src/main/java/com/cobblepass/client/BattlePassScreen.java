@@ -876,24 +876,30 @@ public class BattlePassScreen extends Screen {
             float yaw = (System.currentTimeMillis() / 40F) % 360F;
             org.joml.Quaternionf rotation = new org.joml.Quaternionf().rotationXYZ(0, (float)Math.toRadians(yaw), 0);
             
+            net.minecraft.client.util.math.MatrixStack matrices = context.getMatrices();
+            matrices.push();
+            matrices.translate((float)x, (float)y, 100.0f);
+            
             com.cobblemon.mod.common.client.gui.PokemonGuiUtilsKt.drawProfilePokemon(
                 speciesId,
-                context.getMatrices(),
+                matrices,
                 rotation,
                 com.cobblemon.mod.common.entity.PoseType.PROFILE,
                 null,
-                15.0f,
-                0.0f,
+                delta,
+                20.0f,
+                true,
                 shiny,
                 false,
-                false,
+                1.0f,
+                1.0f,
+                1.0f,
+                1.0f,
                 0.0f,
-                0.0f,
-                (float)x,
-                (float)y,
-                100.0f,
-                delta
+                0.0f
             );
+            
+            matrices.pop();
         } catch (Exception e) {
             e.printStackTrace();
         }

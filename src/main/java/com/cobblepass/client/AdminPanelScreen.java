@@ -118,37 +118,37 @@ public class AdminPanelScreen extends Screen {
             if (selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
                 Quest q = localQuests.get(selectedQuestIndex);
 
-                questTitleField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 50, 150, 12, Text.literal("Title"));
+                questTitleField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 50, 140, 12, Text.literal("Title"));
                 questTitleField.setText(q.getTitle());
                 questTitleField.setMaxLength(64);
                 this.addDrawableChild(questTitleField);
 
-                questDescField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 70, 150, 12, Text.literal("Description"));
+                questDescField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 70, 140, 12, Text.literal("Description"));
                 questDescField.setText(q.getDescription());
                 questDescField.setMaxLength(128);
                 this.addDrawableChild(questDescField);
 
-                questTypeField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 90, 150, 12, Text.literal("Type"));
+                questTypeField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 90, 140, 12, Text.literal("Type"));
                 questTypeField.setText(q.getType().name());
                 questTypeField.setMaxLength(32);
                 this.addDrawableChild(questTypeField);
 
-                questTargetField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 110, 150, 12, Text.literal("Target"));
+                questTargetField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 110, 140, 12, Text.literal("Target"));
                 questTargetField.setText(q.getTarget());
                 questTargetField.setMaxLength(128);
                 this.addDrawableChild(questTargetField);
 
-                questReqField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 130, 60, 12, Text.literal("Required Amount"));
+                questReqField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 130, 60, 12, Text.literal("Required Amount"));
                 questReqField.setText(String.valueOf(q.getRequiredAmount()));
                 questReqField.setMaxLength(8);
                 this.addDrawableChild(questReqField);
 
-                questXpField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 150, 60, 12, Text.literal("XP Reward"));
+                questXpField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 150, 60, 12, Text.literal("XP Reward"));
                 questXpField.setText(String.valueOf(q.getXpReward()));
                 questXpField.setMaxLength(8);
                 this.addDrawableChild(questXpField);
 
-                questCatField = new TextFieldWidget(this.textRenderer, startX + 230, startY + 170, 60, 12, Text.literal("Category"));
+                questCatField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 170, 60, 12, Text.literal("Category"));
                 questCatField.setText(q.getCategory());
                 questCatField.setMaxLength(16);
                 this.addDrawableChild(questCatField);
@@ -156,49 +156,49 @@ public class AdminPanelScreen extends Screen {
         } else if (activeTab.equals("rewards")) {
             Reward r = localRewards.stream().filter(x -> x.getLevel() == selectedRewardLevel).findFirst().orElse(null);
             if (r != null) {
-                levelXpField = new TextFieldWidget(this.textRenderer, startX + 180, startY + 50, 50, 12, Text.literal("Level XP"));
+                levelXpField = new TextFieldWidget(this.textRenderer, startX + 185, startY + 50, 50, 12, Text.literal("Level XP"));
                 levelXpField.setText(String.valueOf(r.getXpRequired()));
                 levelXpField.setMaxLength(8);
                 this.addDrawableChild(levelXpField);
 
                 Reward.Action free = r.getFreeReward();
-                freeTypeField = new TextFieldWidget(this.textRenderer, startX + 150, startY + 80, 70, 12, Text.literal("Free Type"));
+                freeTypeField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 80, 80, 12, Text.literal("Free Type"));
                 freeTypeField.setText(free != null ? free.getType().name() : "");
                 freeTypeField.setMaxLength(16);
                 this.addDrawableChild(freeTypeField);
 
-                freeValField = new TextFieldWidget(this.textRenderer, startX + 150, startY + 100, 100, 12, Text.literal("Free Value"));
+                freeValField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 100, 80, 12, Text.literal("Free Value"));
                 freeValField.setText(free != null ? free.getValue() : "");
                 freeValField.setMaxLength(256);
                 this.addDrawableChild(freeValField);
 
-                freeAmtField = new TextFieldWidget(this.textRenderer, startX + 150, startY + 120, 40, 12, Text.literal("Free Amount"));
+                freeAmtField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 120, 35, 12, Text.literal("Free Amount"));
                 freeAmtField.setText(free != null ? String.valueOf(free.getAmount()) : "0");
                 freeAmtField.setMaxLength(8);
                 this.addDrawableChild(freeAmtField);
 
-                freeTempField = new TextFieldWidget(this.textRenderer, startX + 150, startY + 140, 70, 12, Text.literal("Free Template"));
+                freeTempField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 140, 80, 12, Text.literal("Free Template"));
                 freeTempField.setText(free != null && free.getTemplateRef() != null ? free.getTemplateRef() : "");
                 freeTempField.setMaxLength(64);
                 this.addDrawableChild(freeTempField);
 
                 Reward.Action prem = r.getPremiumReward();
-                premTypeField = new TextFieldWidget(this.textRenderer, startX + 280, startY + 80, 70, 12, Text.literal("Prem Type"));
+                premTypeField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 80, 110, 12, Text.literal("Prem Type"));
                 premTypeField.setText(prem != null ? prem.getType().name() : "");
                 premTypeField.setMaxLength(16);
                 this.addDrawableChild(premTypeField);
 
-                premValField = new TextFieldWidget(this.textRenderer, startX + 280, startY + 100, 100, 12, Text.literal("Prem Value"));
+                premValField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 100, 110, 12, Text.literal("Prem Value"));
                 premValField.setText(prem != null ? prem.getValue() : "");
                 premValField.setMaxLength(256);
                 this.addDrawableChild(premValField);
 
-                premAmtField = new TextFieldWidget(this.textRenderer, startX + 280, startY + 120, 40, 12, Text.literal("Prem Amount"));
+                premAmtField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 120, 35, 12, Text.literal("Prem Amount"));
                 premAmtField.setText(prem != null ? String.valueOf(prem.getAmount()) : "0");
                 premAmtField.setMaxLength(8);
                 this.addDrawableChild(premAmtField);
 
-                premTempField = new TextFieldWidget(this.textRenderer, startX + 280, startY + 140, 70, 12, Text.literal("Prem Template"));
+                premTempField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 140, 110, 12, Text.literal("Prem Template"));
                 premTempField.setText(prem != null && prem.getTemplateRef() != null ? prem.getTemplateRef() : "");
                 premTempField.setMaxLength(64);
                 this.addDrawableChild(premTempField);
@@ -307,16 +307,17 @@ public class AdminPanelScreen extends Screen {
     }
 
     private void renderQuestsTab(DrawContext context, int mouseX, int mouseY) {
-        // Left Side: scrollable list of quests
+        // Left Side: scrollable list of quests (7 visible items)
         int listX = startX + 15;
         int listY = startY + 50;
         int listW = 190;
-        int rowH = 22;
+        int listH = 133; // 7 * 19 px
+        int rowH = 19;
 
-        context.fill(listX, listY, listX + listW, listY + 130, 0xFF111318);
+        context.fill(listX, listY, listX + listW, listY + listH, 0xFF111318);
 
-        // Draw Quest items
-        for (int i = 0; i < 5; i++) {
+        // Draw Quest items (7 visible)
+        for (int i = 0; i < 7; i++) {
             int idx = questScrollIndex + i;
             if (idx >= localQuests.size()) break;
 
@@ -324,23 +325,41 @@ public class AdminPanelScreen extends Screen {
             int rowY = listY + (i * rowH);
             boolean isSelected = (idx == selectedQuestIndex);
 
-            context.fill(listX, rowY, listX + listW, rowY + rowH - 1, isSelected ? 0xFF1E293B : 0xFF1E2026);
+            context.fill(listX, rowY, listX + listW - 14, rowY + rowH - 1, isSelected ? 0xFF1E293B : 0xFF1E2026);
             context.fill(listX, rowY, listX + 2, rowY + rowH - 1, q.getCategory().equalsIgnoreCase("DAILY") ? 0xFF3B82F6 : (q.getCategory().equalsIgnoreCase("WEEKLY") ? 0xFF10B981 : 0xFFF59E0B));
 
             String title = q.getTitle();
-            if (this.textRenderer.getWidth(title) > listW - 10) {
-                title = this.textRenderer.trimToWidth(title, listW - 20) + "...";
+            if (this.textRenderer.getWidth(title) > listW - 25) {
+                title = this.textRenderer.trimToWidth(title, listW - 35) + "...";
             }
-            context.drawText(this.textRenderer, title, listX + 6, rowY + 3, 0xFFFFFFFF, false);
-            context.drawText(this.textRenderer, q.getId(), listX + 6, rowY + 12, 0xFF6B7280, false);
+            context.drawText(this.textRenderer, title, listX + 6, rowY + 2, 0xFFFFFFFF, false);
+            context.drawText(this.textRenderer, q.getId(), listX + 6, rowY + 11, 0xFF6B7280, false);
         }
 
-        // List Scroll Controls
-        int scrollY = listY + 115;
-        boolean hoverUp = mouseX >= listX + listW - 30 && mouseX <= listX + listW - 18 && mouseY >= scrollY && mouseY <= scrollY + 10;
-        boolean hoverDown = mouseX >= listX + listW - 15 && mouseX <= listX + listW - 3 && mouseY >= scrollY && mouseY <= scrollY + 10;
-        context.drawText(this.textRenderer, "▲", listX + listW - 28, scrollY, hoverUp ? 0xFFFDE047 : 0xFF9CA3AF, false);
-        context.drawText(this.textRenderer, "▼", listX + listW - 13, scrollY, hoverDown ? 0xFFFDE047 : 0xFF9CA3AF, false);
+        // Dedicated Scroll Track on the right of the list
+        int scrollTrackX = listX + listW - 12;
+        int scrollTrackW = 10;
+        context.fill(scrollTrackX, listY, scrollTrackX + scrollTrackW, listY + listH, 0xFF0B0C0E);
+
+        // Up arrow "▲"
+        int upY = listY + 2;
+        boolean hoverUp = mouseX >= scrollTrackX && mouseX <= scrollTrackX + scrollTrackW && mouseY >= upY && mouseY <= upY + 10;
+        context.drawText(this.textRenderer, "▲", scrollTrackX + 2, upY, hoverUp ? 0xFFFDE047 : 0xFF9CA3AF, false);
+
+        // Down arrow "▼"
+        int downY = listY + listH - 10;
+        boolean hoverDown = mouseX >= scrollTrackX && mouseX <= scrollTrackX + scrollTrackW && mouseY >= downY && mouseY <= downY + 10;
+        context.drawText(this.textRenderer, "▼", scrollTrackX + 2, downY, hoverDown ? 0xFFFDE047 : 0xFF9CA3AF, false);
+
+        // Scrollbar thumb
+        int trackH = listH - 24;
+        if (localQuests.size() > 7) {
+            int thumbH = Math.max(10, trackH * 7 / localQuests.size());
+            int thumbY = listY + 12 + (trackH - thumbH) * questScrollIndex / (localQuests.size() - 7);
+            context.fill(scrollTrackX + 1, thumbY, scrollTrackX + scrollTrackW - 1, thumbY + thumbH, 0xFF475569);
+        } else {
+            context.fill(scrollTrackX + 1, listY + 12, scrollTrackX + scrollTrackW - 1, listY + 12 + trackH, 0xFF334155);
+        }
 
         // Edit Labels on right
         if (selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
@@ -353,10 +372,10 @@ public class AdminPanelScreen extends Screen {
             context.drawText(this.textRenderer, "XP:", editX, startY + 152, 0xFF9CA3AF, false);
             context.drawText(this.textRenderer, "Cat:", editX, startY + 172, 0xFF9CA3AF, false);
 
-            // Save/Delete Quest item buttons
+            // Save/Delete Quest item buttons (moved down to Y + 195)
             int qSaveW = 75;
             int qSaveX = startX + 215;
-            int qSaveY = startY + 190;
+            int qSaveY = startY + 195;
             boolean hoverQSave = mouseX >= qSaveX && mouseX <= qSaveX + qSaveW && mouseY >= qSaveY && mouseY <= qSaveY + 14;
             context.fill(qSaveX, qSaveY, qSaveX + qSaveW, qSaveY + 14, hoverQSave ? 0xFF15803D : 0xFF166534);
             context.drawText(this.textRenderer, "Aplicar Misión", qSaveX + 6, qSaveY + 3, 0xFFFFFFFF, false);
@@ -368,10 +387,10 @@ public class AdminPanelScreen extends Screen {
             context.drawText(this.textRenderer, "Eliminar", qDelX + 6, qSaveY + 3, 0xFFFFFFFF, false);
         }
 
-        // Global Quests Buttons (New, Send to Server)
+        // Global Quests Buttons (New, Send to Server) (moved down to Y + 195)
         int cmdW = 60;
         int cmdX = startX + 15;
-        int cmdY = startY + 185;
+        int cmdY = startY + 195;
 
         boolean hoverNewQ = mouseX >= cmdX && mouseX <= cmdX + cmdW && mouseY >= cmdY && mouseY <= cmdY + 14;
         context.fill(cmdX, cmdY, cmdX + cmdW, cmdY + 14, hoverNewQ ? 0xFF1D4ED8 : 0xFF1E3A8A);
@@ -385,13 +404,14 @@ public class AdminPanelScreen extends Screen {
     }
 
     private void renderRewardsTab(DrawContext context, int mouseX, int mouseY) {
-        // Left side: Levels list
+        // Left side: Levels list (8 visible)
         int listX = startX + 15;
         int listY = startY + 50;
         int listW = 75;
+        int listH = 120; // 8 * 15 px
         int rowH = 15;
 
-        context.fill(listX, listY, listX + listW, listY + 130, 0xFF111318);
+        context.fill(listX, listY, listX + listW, listY + listH, 0xFF111318);
 
         for (int i = 0; i < 8; i++) {
             int lvl = rewardScrollIndex + 1 + i;
@@ -400,41 +420,59 @@ public class AdminPanelScreen extends Screen {
             int rowY = listY + (i * rowH);
             boolean isSelected = (lvl == selectedRewardLevel);
 
-            context.fill(listX, rowY, listX + listW, rowY + rowH - 1, isSelected ? 0xFF1E293B : 0xFF1E2026);
-            context.drawText(this.textRenderer, "Nivel " + lvl, listX + 8, rowY + 3, 0xFFFFFFFF, false);
+            context.fill(listX, rowY, listX + listW - 14, rowY + rowH - 1, isSelected ? 0xFF1E293B : 0xFF1E2026);
+            context.drawText(this.textRenderer, "Lvl " + lvl, listX + 4, rowY + 3, 0xFFFFFFFF, false);
         }
 
-        // Level scroll controls
-        int scrollY = listY + 115;
-        boolean hoverUp = mouseX >= listX + listW - 30 && mouseX <= listX + listW - 18 && mouseY >= scrollY && mouseY <= scrollY + 10;
-        boolean hoverDown = mouseX >= listX + listW - 15 && mouseX <= listX + listW - 3 && mouseY >= scrollY && mouseY <= scrollY + 10;
-        context.drawText(this.textRenderer, "▲", listX + listW - 28, scrollY, hoverUp ? 0xFFFDE047 : 0xFF9CA3AF, false);
-        context.drawText(this.textRenderer, "▼", listX + listW - 13, scrollY, hoverDown ? 0xFFFDE047 : 0xFF9CA3AF, false);
+        // Dedicated Scroll Track on the right of the levels list
+        int scrollTrackX = listX + listW - 12;
+        int scrollTrackW = 10;
+        context.fill(scrollTrackX, listY, scrollTrackX + scrollTrackW, listY + listH, 0xFF0B0C0E);
 
-        // Edit Area (Free on Left, Premium on Right)
+        // Up arrow "▲"
+        int upY = listY + 2;
+        boolean hoverUp = mouseX >= scrollTrackX && mouseX <= scrollTrackX + scrollTrackW && mouseY >= upY && mouseY <= upY + 10;
+        context.drawText(this.textRenderer, "▲", scrollTrackX + 2, upY, hoverUp ? 0xFFFDE047 : 0xFF9CA3AF, false);
+
+        // Down arrow "▼"
+        int downY = listY + listH - 10;
+        boolean hoverDown = mouseX >= scrollTrackX && mouseX <= scrollTrackX + scrollTrackW && mouseY >= downY && mouseY <= downY + 10;
+        context.drawText(this.textRenderer, "▼", scrollTrackX + 2, downY, hoverDown ? 0xFFFDE047 : 0xFF9CA3AF, false);
+
+        // Scrollbar thumb
+        int trackH = listH - 24;
+        if (localRewards.size() > 8) {
+            int thumbH = Math.max(10, trackH * 8 / localRewards.size());
+            int thumbY = listY + 12 + (trackH - thumbH) * rewardScrollIndex / (localRewards.size() - 8);
+            context.fill(scrollTrackX + 1, thumbY, scrollTrackX + scrollTrackW - 1, thumbY + thumbH, 0xFF475569);
+        } else {
+            context.fill(scrollTrackX + 1, listY + 12, scrollTrackX + scrollTrackW - 1, listY + 12 + trackH, 0xFF334155);
+        }
+
+        // Edit Area (Free on Left, Premium on Right) (no overlaps)
         context.drawText(this.textRenderer, "XP req:", startX + 105, startY + 52, 0xFF9CA3AF, false);
 
         // Columns Headers
-        context.drawText(this.textRenderer, "GRATIS", startX + 105, startY + 70, 0xFF3B82F6, false);
-        context.drawText(this.textRenderer, "PREMIUM", startX + 235, startY + 70, 0xFFF59E0B, false);
+        context.drawText(this.textRenderer, "GRATIS", startX + 135, startY + 70, 0xFF3B82F6, false);
+        context.drawText(this.textRenderer, "PREMIUM", startX + 270, startY + 70, 0xFFF59E0B, false);
 
-        // Labels Column 1
-        int col1X = startX + 105;
+        // Labels Column 1 (Free)
+        int col1X = startX + 100;
         context.drawText(this.textRenderer, "Tipo:", col1X, startY + 82, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Valor:", col1X, startY + 102, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Cant:", col1X, startY + 122, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Plant:", col1X, startY + 142, 0xFF9CA3AF, false);
 
-        // Labels Column 2
-        int col2X = startX + 235;
+        // Labels Column 2 (Premium)
+        int col2X = startX + 230;
         context.drawText(this.textRenderer, "Tipo:", col2X, startY + 82, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Valor:", col2X, startY + 102, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Cant:", col2X, startY + 122, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Plant:", col2X, startY + 142, 0xFF9CA3AF, false);
 
-        // Apply Level reward button
+        // Apply Level reward button (aligned to X + 135)
         int saveW = 85;
-        int saveX = startX + 105;
+        int saveX = startX + 135;
         int saveY = startY + 160;
         boolean hoverLvlSave = mouseX >= saveX && mouseX <= saveX + saveW && mouseY >= saveY && mouseY <= saveY + 14;
         context.fill(saveX, saveY, saveX + saveW, saveY + 14, hoverLvlSave ? 0xFF15803D : 0xFF166534);
@@ -543,10 +581,11 @@ public class AdminPanelScreen extends Screen {
             int listX = startX + 15;
             int listY = startY + 50;
             int listW = 190;
-            int rowH = 22;
+            int listH = 133;
+            int rowH = 19;
 
-            // Click list items
-            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + 110) {
+            // Click list items (excluding the scrollbar area on the right)
+            if (mouseX >= listX && mouseX <= listX + listW - 14 && mouseY >= listY && mouseY <= listY + listH) {
                 int clickedIndex = questScrollIndex + (int)((mouseY - listY) / rowH);
                 if (clickedIndex >= 0 && clickedIndex < localQuests.size()) {
                     selectedQuestIndex = clickedIndex;
@@ -557,27 +596,27 @@ public class AdminPanelScreen extends Screen {
             }
 
             // Scroll arrows
-            int scrollY = listY + 115;
-            if (mouseX >= listX + listW - 30 && mouseX <= listX + listW - 18 && mouseY >= scrollY && mouseY <= scrollY + 10) {
+            int scrollTrackX = listX + listW - 12;
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + 2 && mouseY <= listY + 12) {
                 if (questScrollIndex > 0) {
                     questScrollIndex--;
                     playClickSound();
                 }
                 return true;
             }
-            if (mouseX >= listX + listW - 15 && mouseX <= listX + listW - 3 && mouseY >= scrollY && mouseY <= scrollY + 10) {
-                if (questScrollIndex < localQuests.size() - 5) {
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + listH - 10 && mouseY <= listY + listH) {
+                if (questScrollIndex < localQuests.size() - 7) {
                     questScrollIndex++;
                     playClickSound();
                 }
                 return true;
             }
 
-            // Applying current quest modifications
+            // Applying current quest modifications (updated to Y + 195)
             if (selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
                 int qSaveW = 75;
                 int qSaveX = startX + 215;
-                int qSaveY = startY + 190;
+                int qSaveY = startY + 195;
                 if (mouseX >= qSaveX && mouseX <= qSaveX + qSaveW && mouseY >= qSaveY && mouseY <= qSaveY + 14) {
                     playClickSound();
                     applyQuestChanges();
@@ -595,9 +634,9 @@ public class AdminPanelScreen extends Screen {
                 }
             }
 
-            // New/Send Global Buttons
+            // New/Send Global Buttons (updated to Y + 195)
             int cmdX = startX + 15;
-            int cmdY = startY + 185;
+            int cmdY = startY + 195;
             if (mouseX >= cmdX && mouseX <= cmdX + 60 && mouseY >= cmdY && mouseY <= cmdY + 14) {
                 playClickSound();
                 Quest newQuest = new Quest("quest_" + System.currentTimeMillis(), "Nueva Misión", "Detalle de la misión", Quest.Type.CAPTURE_POKEMON, "any", 10, 150, "DAILY");
@@ -617,10 +656,11 @@ public class AdminPanelScreen extends Screen {
             int listX = startX + 15;
             int listY = startY + 50;
             int listW = 75;
+            int listH = 120;
             int rowH = 15;
 
-            // Click levels list
-            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + 120) {
+            // Click levels list (excluding the scrollbar area on the right)
+            if (mouseX >= listX && mouseX <= listX + listW - 14 && mouseY >= listY && mouseY <= listY + listH) {
                 int clickedLvl = rewardScrollIndex + 1 + (int)((mouseY - listY) / rowH);
                 if (clickedLvl >= 1 && clickedLvl <= localRewards.size()) {
                     selectedRewardLevel = clickedLvl;
@@ -631,15 +671,15 @@ public class AdminPanelScreen extends Screen {
             }
 
             // Scroll arrows
-            int scrollY = listY + 115;
-            if (mouseX >= listX + listW - 30 && mouseX <= listX + listW - 18 && mouseY >= scrollY && mouseY <= scrollY + 10) {
+            int scrollTrackX = listX + listW - 12;
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + 2 && mouseY <= listY + 12) {
                 if (rewardScrollIndex > 0) {
                     rewardScrollIndex--;
                     playClickSound();
                 }
                 return true;
             }
-            if (mouseX >= listX + listW - 15 && mouseX <= listX + listW - 3 && mouseY >= scrollY && mouseY <= scrollY + 10) {
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + listH - 10 && mouseY <= listY + listH) {
                 if (rewardScrollIndex < localRewards.size() - 8) {
                     rewardScrollIndex++;
                     playClickSound();
@@ -647,9 +687,9 @@ public class AdminPanelScreen extends Screen {
                 return true;
             }
 
-            // Apply Level Reward Changes
+            // Apply Level Reward Changes (aligned to X + 135)
             int saveW = 85;
-            int saveX = startX + 105;
+            int saveX = startX + 135;
             int saveY = startY + 160;
             if (mouseX >= saveX && mouseX <= saveX + saveW && mouseY >= saveY && mouseY <= saveY + 14) {
                 playClickSound();
@@ -668,6 +708,52 @@ public class AdminPanelScreen extends Screen {
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (activeTab.equals("quests")) {
+            int listX = startX + 15;
+            int listY = startY + 50;
+            int listW = 190;
+            int listH = 133;
+            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
+                if (verticalAmount > 0) {
+                    if (questScrollIndex > 0) {
+                        questScrollIndex--;
+                        playClickSound();
+                        return true;
+                    }
+                } else if (verticalAmount < 0) {
+                    if (questScrollIndex < localQuests.size() - 7) {
+                        questScrollIndex++;
+                        playClickSound();
+                        return true;
+                    }
+                }
+            }
+        } else if (activeTab.equals("rewards")) {
+            int listX = startX + 15;
+            int listY = startY + 50;
+            int listW = 75;
+            int listH = 120;
+            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
+                if (verticalAmount > 0) {
+                    if (rewardScrollIndex > 0) {
+                        rewardScrollIndex--;
+                        playClickSound();
+                        return true;
+                    }
+                } else if (verticalAmount < 0) {
+                    if (rewardScrollIndex < localRewards.size() - 8) {
+                        rewardScrollIndex++;
+                        playClickSound();
+                        return true;
+                    }
+                }
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     private void playClickSound() {
