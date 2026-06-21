@@ -46,6 +46,21 @@ public class NetworkPackets {
         }
     }
 
+    public static final Identifier SYNC_FULL_QUESTS_ID = Identifier.of("cobblepass", "sync_full_quests");
+
+    public record SyncFullQuestsPayload(String fullQuestsJson) implements CustomPayload {
+        public static final CustomPayload.Id<SyncFullQuestsPayload> TYPE = new CustomPayload.Id<>(SYNC_FULL_QUESTS_ID);
+        public static final PacketCodec<RegistryByteBuf, SyncFullQuestsPayload> CODEC = PacketCodec.tuple(
+                PacketCodecs.string(524288), SyncFullQuestsPayload::fullQuestsJson,
+                SyncFullQuestsPayload::new
+        );
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return TYPE;
+        }
+    }
+
     public record ClaimRewardPayload(int level, boolean premium) implements CustomPayload {
         public static final CustomPayload.Id<ClaimRewardPayload> TYPE = new CustomPayload.Id<>(CLAIM_ID);
         public static final PacketCodec<RegistryByteBuf, ClaimRewardPayload> CODEC = PacketCodec.tuple(

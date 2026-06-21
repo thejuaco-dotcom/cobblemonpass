@@ -61,9 +61,9 @@ public class AdminPanelScreen extends Screen {
         super(Text.literal("CobblePass Admin Panel"));
         this.parent = parent;
 
-        // Clone quests and rewards locally so modifications aren't permanent until saved
-        if (CobblePassClient.quests != null) {
-            for (Quest q : CobblePassClient.quests) {
+        List<Quest> sourceQuests = CobblePassClient.fullQuestsPool != null ? CobblePassClient.fullQuestsPool : CobblePassClient.quests;
+        if (sourceQuests != null) {
+            for (Quest q : sourceQuests) {
                 this.localQuests.add(new Quest(q.getId(), q.getTitle(), q.getDescription(), q.getType(), q.getTarget(), q.getRequiredAmount(), q.getXpReward(), q.getCategory()));
             }
         }

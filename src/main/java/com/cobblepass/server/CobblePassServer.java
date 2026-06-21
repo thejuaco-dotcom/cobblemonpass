@@ -46,6 +46,7 @@ public class CobblePassServer implements ModInitializer {
 
         // 2. Register Network Payloads
         PayloadTypeRegistry.playS2C().register(NetworkPackets.SyncBattlePassPayload.TYPE, NetworkPackets.SyncBattlePassPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(NetworkPackets.SyncFullQuestsPayload.TYPE, NetworkPackets.SyncFullQuestsPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NetworkPackets.OpenBattlePassPayload.TYPE, NetworkPackets.OpenBattlePassPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.ClaimRewardPayload.TYPE, NetworkPackets.ClaimRewardPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.ClaimAllPayload.TYPE, NetworkPackets.ClaimAllPayload.CODEC);
@@ -237,6 +238,10 @@ public class CobblePassServer implements ModInitializer {
                 quests, rewards, progress, cfg.currencyType, cfg.currencyTarget, cfg.premiumCost,
                 cfg.seasonStartTime, cfg.seasonEndTime, cfg.seasonActive
         ));
+
+        if (player.hasPermissionLevel(2) && ServerPlayNetworking.canSend(player, NetworkPackets.SyncFullQuestsPayload.TYPE)) {
+            ServerPlayNetworking.send(player, new NetworkPackets.SyncFullQuestsPayload(DataManager.getQuestsJson()));
+        }
     }
 
     private static void buyPremiumPass(ServerPlayerEntity player) {

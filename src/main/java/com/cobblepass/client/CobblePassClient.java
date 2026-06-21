@@ -22,6 +22,7 @@ import java.util.List;
 
 public class CobblePassClient implements ClientModInitializer {
     public static List<Quest> quests;
+    public static List<Quest> fullQuestsPool;
     public static List<Reward> rewards;
     public static PlayerProgress progress;
     public static String currencyType = "ADMIN_ONLY";
@@ -68,6 +69,13 @@ public class CobblePassClient implements ClientModInitializer {
                 seasonStartTime = payload.seasonStartTime();
                 seasonEndTime = payload.seasonEndTime();
                 seasonActive = payload.seasonActive();
+            });
+        });
+
+        // Sync Full Quests Pool for Admins
+        ClientPlayNetworking.registerGlobalReceiver(NetworkPackets.SyncFullQuestsPayload.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                fullQuestsPool = GSON.fromJson(payload.fullQuestsJson(), new TypeToken<List<Quest>>() {}.getType());
             });
         });
 

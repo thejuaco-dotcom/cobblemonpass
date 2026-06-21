@@ -868,6 +868,8 @@ public class BattlePassScreen extends Screen {
     }
 
     private void drawPokemonModel(DrawContext context, String value, int x, int y, float delta) {
+        net.minecraft.client.util.math.MatrixStack matrices = context.getMatrices();
+        boolean pushed = false;
         try {
             String species = value.split(" ")[0].toLowerCase();
             boolean shiny = value.contains("shiny=true") || value.contains("shiny");
@@ -876,16 +878,19 @@ public class BattlePassScreen extends Screen {
             float yaw = (System.currentTimeMillis() / 40F) % 360F;
             org.joml.Quaternionf rotation = new org.joml.Quaternionf().rotationXYZ(0, (float)Math.toRadians(yaw), 0);
             
-            net.minecraft.client.util.math.MatrixStack matrices = context.getMatrices();
             matrices.push();
+            pushed = true;
             matrices.translate((float)x, (float)y, 100.0f);
+            
+            com.cobblemon.mod.common.client.render.models.blockbench.FloatingState floatingState = 
+                new com.cobblemon.mod.common.client.render.models.blockbench.FloatingState();
             
             com.cobblemon.mod.common.client.gui.PokemonGuiUtilsKt.drawProfilePokemon(
                 speciesId,
                 matrices,
                 rotation,
                 com.cobblemon.mod.common.entity.PoseType.PROFILE,
-                null,
+                floatingState,
                 delta,
                 20.0f,
                 true,
@@ -898,10 +903,12 @@ public class BattlePassScreen extends Screen {
                 0.0f,
                 0.0f
             );
-            
-            matrices.pop();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (pushed) {
+                matrices.pop();
+            }
         }
     }
 }
