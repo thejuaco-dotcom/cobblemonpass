@@ -22,9 +22,28 @@ public class BattlePassScreen extends Screen {
     private boolean isDraggingScrollbar = false;
     private String activeQuestTab = "daily"; // "daily" or "weekly" or "seasonal"
     private int questPage = 0;
+    private final com.cobblemon.mod.common.client.render.models.blockbench.FloatingState freeFloatingState = 
+        new com.cobblemon.mod.common.client.render.models.blockbench.FloatingState();
+    private final com.cobblemon.mod.common.client.render.models.blockbench.FloatingState premiumFloatingState = 
+        new com.cobblemon.mod.common.client.render.models.blockbench.FloatingState();
+    private int freeFloatingStateAge = 0;
+    private int premiumFloatingStateAge = 0;
 
     public BattlePassScreen() {
         super(Text.literal("CobblePass"));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (freeFloatingState != null) {
+            freeFloatingStateAge++;
+            freeFloatingState.updateAge(freeFloatingStateAge);
+        }
+        if (premiumFloatingState != null) {
+            premiumFloatingStateAge++;
+            premiumFloatingState.updateAge(premiumFloatingStateAge);
+        }
     }
 
     @Override
@@ -403,7 +422,7 @@ public class BattlePassScreen extends Screen {
         
         Reward.Action freeAction = reward.getFreeReward();
         if (freeAction != null && freeAction.getType() == Reward.Type.POKEMON) {
-            drawPokemonModel(context, freeAction.getValue(), leftX + (halfW) / 2, cardY + 35, delta);
+            drawPokemonModel(context, freeAction.getValue(), leftX + (halfW) / 2, cardY + 28, delta, freeFloatingState);
         } else {
             net.minecraft.item.ItemStack freeStack = getItemStackForAction(freeAction);
             if (!freeStack.isEmpty()) {
@@ -453,7 +472,7 @@ public class BattlePassScreen extends Screen {
 
         Reward.Action premAction = reward.getPremiumReward();
         if (premAction != null && premAction.getType() == Reward.Type.POKEMON) {
-            drawPokemonModel(context, premAction.getValue(), rightX + (halfW) / 2, cardY + 35, delta);
+            drawPokemonModel(context, premAction.getValue(), rightX + (halfW) / 2, cardY + 28, delta, premiumFloatingState);
         } else {
             net.minecraft.item.ItemStack premStack = getItemStackForAction(premAction);
             if (!premStack.isEmpty()) {
@@ -867,7 +886,7 @@ public class BattlePassScreen extends Screen {
         return trimmed + suffix;
     }
 
-    private void drawPokemonModel(DrawContext context, String value, int x, int y, float delta) {
+    private void drawPokemonModel(DrawContext context, String value, int x, int y, float delta, com.cobblemon.mod.common.client.render.models.blockbench.FloatingState floatingState) {
         net.minecraft.client.util.math.MatrixStack matrices = context.getMatrices();
         boolean pushed = false;
         try {
@@ -876,14 +895,20 @@ public class BattlePassScreen extends Screen {
             net.minecraft.util.Identifier speciesId = net.minecraft.util.Identifier.of("cobblemon", species);
             
             float yaw = (System.currentTimeMillis() / 40F) % 360F;
-            org.joml.Quaternionf rotation = new org.joml.Quaternionf().rotationXYZ(0, (float)Math.toRadians(yaw), 0);
+            org.joml.Quaternionf rotation = com.cobblemon.mod.common.util.math.QuaternionUtilsKt.fromEulerXYZDegrees(
+                new org.joml.Quaternionf(), 
+                new org.joml.Vector3f(13f, yaw, 0f)
+            );
+            
+            java.util.HashSet<String> aspects = new java.util.HashSet<>();
+            if (shiny) {
+                aspects.add("shiny");
+            }
+            floatingState.setCurrentAspects(aspects);
             
             matrices.push();
             pushed = true;
             matrices.translate((float)x, (float)y, 100.0f);
-            
-            com.cobblemon.mod.common.client.render.models.blockbench.FloatingState floatingState = 
-                new com.cobblemon.mod.common.client.render.models.blockbench.FloatingState();
             
             com.cobblemon.mod.common.client.gui.PokemonGuiUtilsKt.drawProfilePokemon(
                 speciesId,
@@ -892,10 +917,10 @@ public class BattlePassScreen extends Screen {
                 com.cobblemon.mod.common.entity.PoseType.PROFILE,
                 floatingState,
                 delta,
-                20.0f,
-                true,
-                shiny,
-                false,
+                6.0f, // scale
+                false, // useProfileScale
+                false, // useBaseScale
+                false, // doQuirks
                 1.0f,
                 1.0f,
                 1.0f,

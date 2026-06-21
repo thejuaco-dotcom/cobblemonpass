@@ -611,6 +611,17 @@ public class AdminPanelScreen extends Screen {
                 }
                 return true;
             }
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + 12 && mouseY <= listY + listH - 12) {
+                if (localQuests.size() > 7) {
+                    double ratio = (mouseY - (listY + 12)) / (double)(listH - 24);
+                    int maxScroll = localQuests.size() - 7;
+                    questScrollIndex = (int) Math.round(ratio * maxScroll);
+                    if (questScrollIndex < 0) questScrollIndex = 0;
+                    if (questScrollIndex > maxScroll) questScrollIndex = maxScroll;
+                    playClickSound();
+                }
+                return true;
+            }
 
             // Applying current quest modifications (updated to Y + 195)
             if (selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
@@ -682,6 +693,17 @@ public class AdminPanelScreen extends Screen {
             if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + listH - 10 && mouseY <= listY + listH) {
                 if (rewardScrollIndex < localRewards.size() - 8) {
                     rewardScrollIndex++;
+                    playClickSound();
+                }
+                return true;
+            }
+            if (mouseX >= scrollTrackX && mouseX <= scrollTrackX + 10 && mouseY >= listY + 12 && mouseY <= listY + listH - 12) {
+                if (localRewards.size() > 8) {
+                    double ratio = (mouseY - (listY + 12)) / (double)(listH - 24);
+                    int maxScroll = localRewards.size() - 8;
+                    rewardScrollIndex = (int) Math.round(ratio * maxScroll);
+                    if (rewardScrollIndex < 0) rewardScrollIndex = 0;
+                    if (rewardScrollIndex > maxScroll) rewardScrollIndex = maxScroll;
                     playClickSound();
                 }
                 return true;

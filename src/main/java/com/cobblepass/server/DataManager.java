@@ -220,7 +220,8 @@ public class DataManager {
                     forceRecreate = true;
                 } else {
                     boolean hasOldQuest = loaded.stream().anyMatch(q -> q.getId().equals("craft_seasonal_great") || q.getId().equals("craft_seasonal_healing_machine") || (q.getId().equals("mine_weekly_gold") && q.getRequiredAmount() < 100) || q.getDescription().contains("pizarra") || q.getDescription().contains("detritos"));
-                    if (hasOldQuest) {
+                    boolean hasNewQuestTypes = loaded.stream().anyMatch(q -> q.getType() == Quest.Type.EVOLVE_POKEMON || q.getType() == Quest.Type.TRADE_POKEMON || q.getType() == Quest.Type.HATCH_EGG);
+                    if (hasOldQuest || !hasNewQuestTypes) {
                         forceRecreate = true;
                     }
                 }
@@ -330,6 +331,24 @@ public class DataManager {
         defaults.add(new Quest("mine_seasonal_diamond_deep", "Fiebre del Diamante", "Pica 200 bloques de mineral de Diamante", Quest.Type.MINE_BLOCK, "regex:minecraft:(deepslate_)?diamond_ore", 200, 2000, "SEASONAL"));
         defaults.add(new Quest("mine_seasonal_gold_deep", "El Dorado Profundo", "Pica 500 bloques de mineral de Oro", Quest.Type.MINE_BLOCK, "regex:minecraft:(deepslate_)?gold_ore", 500, 2000, "SEASONAL"));
         defaults.add(new Quest("craft_seasonal_balls", "Fábrica Regional de Poké Balls", "Craftea 1500 Poké Balls de cualquier tipo", Quest.Type.CRAFT_ITEM, "cobblemon:*_ball", 1500, 2000, "SEASONAL"));
+
+        // --- 4. NEW INTERACTIVE QUESTS (Daily, Weekly, Seasonal) ---
+        // Daily
+        defaults.add(new Quest("evolve_daily_any", "Evolución Diaria", "Evoluciona 1 Pokémon", Quest.Type.EVOLVE_POKEMON, "any", 1, 150, "DAILY"));
+        defaults.add(new Quest("hatch_daily_any", "Crianza Diaria", "Eclosiona 1 huevo Pokémon", Quest.Type.HATCH_EGG, "any", 1, 150, "DAILY"));
+        defaults.add(new Quest("trade_daily_any", "Intercambio Diario", "Intercambia 1 Pokémon con otro jugador", Quest.Type.TRADE_POKEMON, "any", 1, 150, "DAILY"));
+
+        // Weekly
+        defaults.add(new Quest("evolve_weekly_fire", "Combustión Evolutiva", "Evoluciona 3 Pokémon de tipo Fuego", Quest.Type.EVOLVE_POKEMON, "fire", 3, 600, "WEEKLY"));
+        defaults.add(new Quest("evolve_weekly_water", "Corriente Evolutiva", "Evoluciona 3 Pokémon de tipo Agua", Quest.Type.EVOLVE_POKEMON, "water", 3, 600, "WEEKLY"));
+        defaults.add(new Quest("evolve_weekly_grass", "Floración Evolutiva", "Evoluciona 3 Pokémon de tipo Planta", Quest.Type.EVOLVE_POKEMON, "grass", 3, 600, "WEEKLY"));
+        defaults.add(new Quest("hatch_weekly_any", "Guardería Activa", "Eclosiona 5 huevos Pokémon", Quest.Type.HATCH_EGG, "any", 5, 600, "WEEKLY"));
+        defaults.add(new Quest("trade_weekly_any", "Mercader Pokémon", "Intercambia 3 Pokémon con otros entrenadores", Quest.Type.TRADE_POKEMON, "any", 3, 600, "WEEKLY"));
+
+        // Seasonal
+        defaults.add(new Quest("evolve_seasonal_any", "Metamorfosis Regional", "Evoluciona 30 Pokémon", Quest.Type.EVOLVE_POKEMON, "any", 30, 2000, "SEASONAL"));
+        defaults.add(new Quest("hatch_seasonal_any", "Gran Incubadora", "Eclosiona 25 huevos Pokémon", Quest.Type.HATCH_EGG, "any", 25, 2000, "SEASONAL"));
+        defaults.add(new Quest("trade_seasonal_any", "Comercio Global", "Intercambia 15 Pokémon con otros entrenadores", Quest.Type.TRADE_POKEMON, "any", 15, 2000, "SEASONAL"));
 
         try (FileWriter writer = new FileWriter(QUESTS_FILE.toFile())) {
             GSON.toJson(defaults, writer);

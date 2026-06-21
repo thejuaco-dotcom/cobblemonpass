@@ -239,7 +239,7 @@ public class CobblePassServer implements ModInitializer {
                 cfg.seasonStartTime, cfg.seasonEndTime, cfg.seasonActive
         ));
 
-        if (player.hasPermissionLevel(2) && ServerPlayNetworking.canSend(player, NetworkPackets.SyncFullQuestsPayload.TYPE)) {
+        if (player.hasPermissionLevel(2)) {
             ServerPlayNetworking.send(player, new NetworkPackets.SyncFullQuestsPayload(DataManager.getQuestsJson()));
         }
     }
