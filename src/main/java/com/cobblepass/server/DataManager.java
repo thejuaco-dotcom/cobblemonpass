@@ -202,6 +202,7 @@ public class DataManager {
     }
 
     public static void reloadConfigs(MinecraftServer server) {
+        saveAllCached();
         initialize();
         if (server != null) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -217,11 +218,10 @@ public class DataManager {
             try (FileReader reader = new FileReader(file)) {
                 List<Quest> loaded = GSON.fromJson(reader, new TypeToken<List<Quest>>() {}.getType());
                 if (loaded == null || loaded.size() < 20) {
-                    forceRecreate = true;
-                } else {
                     boolean hasOldQuest = loaded.stream().anyMatch(q -> q.getId().equals("craft_seasonal_great") || q.getId().equals("craft_seasonal_healing_machine") || (q.getId().equals("mine_weekly_gold") && q.getRequiredAmount() < 100) || q.getDescription().contains("pizarra") || q.getDescription().contains("detritos"));
                     boolean hasNewQuestTypes = loaded.stream().anyMatch(q -> q.getType() == Quest.Type.EVOLVE_POKEMON || q.getType() == Quest.Type.TRADE_POKEMON || q.getType() == Quest.Type.HATCH_EGG);
-                    if (hasOldQuest || !hasNewQuestTypes) {
+                    boolean hasNewGenerations = loaded.stream().anyMatch(q -> q.getId().equals("cap_daily_mudkip") || q.getId().equals("cap_daily_gible") || q.getId().equals("evolve_daily_fire"));
+                    if (hasOldQuest || !hasNewQuestTypes || !hasNewGenerations) {
                         forceRecreate = true;
                     }
                 }
@@ -258,8 +258,18 @@ public class DataManager {
             defaults.add(new Quest("cap_daily_" + types[i], "Cazador " + typeNames[i], "Captura 3 Pokémon de tipo " + typeNames[i], Quest.Type.CAPTURE_POKEMON, types[i], 3, 150, "DAILY"));
         }
 
-        String[] commonSpecies = {"pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "rattata", "zubat", "diglett", "meowth", "psyduck", "growlithe", "poliwag", "abra", "machop", "geodude", "gastly", "eevee", "magikarp", "caterpie", "weedle"};
-        String[] speciesNames = {"Pikachu", "Bulbasaur", "Charmander", "Squirtle", "Pidgey", "Rattata", "Zubat", "Diglett", "Meowth", "Psyduck", "Growlithe", "Poliwag", "Abra", "Machop", "Geodude", "Gastly", "Eevee", "Magikarp", "Caterpie", "Weedle"};
+        String[] commonSpecies = {
+            "pikachu", "bulbasaur", "charmander", "squirtle", "pidgey", "rattata", "zubat", "diglett", "meowth", "psyduck",
+            "growlithe", "poliwag", "abra", "machop", "geodude", "gastly", "eevee", "magikarp", "caterpie", "weedle",
+            "mudkip", "ralts", "shroomish", "gible", "shinx", "riolu", "zorua", "litwick", "froakie", "goomy",
+            "rowlet", "rockruff", "scorbunny", "dreepy", "fuecoco", "tinkatink"
+        };
+        String[] speciesNames = {
+            "Pikachu", "Bulbasaur", "Charmander", "Squirtle", "Pidgey", "Rattata", "Zubat", "Diglett", "Meowth", "Psyduck",
+            "Growlithe", "Poliwag", "Abra", "Machop", "Geodude", "Gastly", "Eevee", "Magikarp", "Caterpie", "Weedle",
+            "Mudkip", "Ralts", "Shroomish", "Gible", "Shinx", "Riolu", "Zorua", "Litwick", "Froakie", "Goomy",
+            "Rowlet", "Rockruff", "Scorbunny", "Dreepy", "Fuecoco", "Tinkatink"
+        };
         for (int i = 0; i < commonSpecies.length; i++) {
             defaults.add(new Quest("cap_daily_" + commonSpecies[i], "Cazador de " + speciesNames[i], "Captura 1 " + speciesNames[i] + " salvaje", Quest.Type.CAPTURE_POKEMON, commonSpecies[i], 1, 150, "DAILY"));
         }
@@ -280,8 +290,16 @@ public class DataManager {
         defaults.add(new Quest("craft_daily_iron", "Herrero de Hierro", "Craftea 8 lingotes de hierro", Quest.Type.CRAFT_ITEM, "minecraft:iron_ingot", 8, 150, "DAILY"));
         defaults.add(new Quest("craft_daily_gold", "Herrero de Oro", "Craftea 4 lingotes de oro", Quest.Type.CRAFT_ITEM, "minecraft:gold_ingot", 4, 150, "DAILY"));
 
-        String[] extraSpecies = {"pidgeot", "sandshrew", "nidoran", "clefairy", "vulpix", "jigglypuff", "oddish", "paras", "venonat", "mankey", "arcanine", "tentacool", "ponyta", "slowpoke", "magnemite", "doduo", "grimer", "shellder", "onix", "drowzee", "krabby"};
-        String[] extraSpeciesNames = {"Pidgeot", "Sandshrew", "Nidoran", "Clefairy", "Vulpix", "Jigglypuff", "Oddish", "Paras", "Venonat", "Mankey", "Arcanine", "Tentacool", "Ponyta", "Slowpoke", "Magnemite", "Doduo", "Grimer", "Shellder", "Onix", "Drowzee", "Krabby"};
+        String[] extraSpecies = {
+            "pidgeot", "sandshrew", "nidoran", "clefairy", "vulpix", "jigglypuff", "oddish", "paras", "venonat", "mankey",
+            "arcanine", "tentacool", "ponyta", "slowpoke", "magnemite", "doduo", "grimer", "shellder", "onix", "drowzee", "krabby",
+            "gardevoir", "bagon", "lucario", "garchomp", "zoroark", "greninja", "decidueye", "lycanroc", "dragapult", "tinkaton"
+        };
+        String[] extraSpeciesNames = {
+            "Pidgeot", "Sandshrew", "Nidoran", "Clefairy", "Vulpix", "Jigglypuff", "Oddish", "Paras", "Venonat", "Mankey",
+            "Arcanine", "Tentacool", "Ponyta", "Slowpoke", "Magnemite", "Doduo", "Grimer", "Shellder", "Onix", "Drowzee", "Krabby",
+            "Gardevoir", "Bagon", "Lucario", "Garchomp", "Zoroark", "Greninja", "Decidueye", "Lycanroc", "Dragapult", "Tinkaton"
+        };
         for (int i = 0; i < extraSpecies.length; i++) {
             defaults.add(new Quest("cap_daily_" + extraSpecies[i], "Capturar a " + extraSpeciesNames[i], "Captura 1 " + extraSpeciesNames[i] + " salvaje", Quest.Type.CAPTURE_POKEMON, extraSpecies[i], 1, 150, "DAILY"));
         }
@@ -335,8 +353,14 @@ public class DataManager {
         // --- 4. NEW INTERACTIVE QUESTS (Daily, Weekly, Seasonal) ---
         // Daily
         defaults.add(new Quest("evolve_daily_any", "Evolución Diaria", "Evoluciona 1 Pokémon", Quest.Type.EVOLVE_POKEMON, "any", 1, 150, "DAILY"));
+        defaults.add(new Quest("evolve_daily_fire", "Evolución Ígnea", "Evoluciona 1 Pokémon de tipo Fuego", Quest.Type.EVOLVE_POKEMON, "fire", 1, 150, "DAILY"));
+        defaults.add(new Quest("evolve_daily_water", "Evolución Acuática", "Evoluciona 1 Pokémon de tipo Agua", Quest.Type.EVOLVE_POKEMON, "water", 1, 150, "DAILY"));
+        defaults.add(new Quest("evolve_daily_grass", "Evolución Botánica", "Evoluciona 1 Pokémon de tipo Planta", Quest.Type.EVOLVE_POKEMON, "grass", 1, 150, "DAILY"));
         defaults.add(new Quest("hatch_daily_any", "Crianza Diaria", "Eclosiona 1 huevo Pokémon", Quest.Type.HATCH_EGG, "any", 1, 150, "DAILY"));
+        defaults.add(new Quest("hatch_daily_multiple", "Incubación Rápida", "Eclosiona 2 huevos Pokémon", Quest.Type.HATCH_EGG, "any", 2, 150, "DAILY"));
         defaults.add(new Quest("trade_daily_any", "Intercambio Diario", "Intercambia 1 Pokémon con otro jugador", Quest.Type.TRADE_POKEMON, "any", 1, 150, "DAILY"));
+        defaults.add(new Quest("trade_daily_water", "Trueque Marino", "Intercambia 1 Pokémon de tipo Agua con otro jugador", Quest.Type.TRADE_POKEMON, "water", 1, 150, "DAILY"));
+        defaults.add(new Quest("trade_daily_grass", "Trueque Forestal", "Intercambia 1 Pokémon de tipo Planta con otro jugador", Quest.Type.TRADE_POKEMON, "grass", 1, 150, "DAILY"));
 
         // Weekly
         defaults.add(new Quest("evolve_weekly_fire", "Combustión Evolutiva", "Evoluciona 3 Pokémon de tipo Fuego", Quest.Type.EVOLVE_POKEMON, "fire", 3, 600, "WEEKLY"));
@@ -589,7 +613,31 @@ public class DataManager {
 
     public static void saveRewardsJson(String json) {
         try {
-            Files.writeString(REWARDS_FILE, json);
+            com.google.gson.JsonElement incoming = GSON.fromJson(json, com.google.gson.JsonElement.class);
+            if (incoming.isJsonObject()) {
+                Files.writeString(REWARDS_FILE, json);
+                return;
+            }
+            
+            com.google.gson.JsonObject output = new com.google.gson.JsonObject();
+            com.google.gson.JsonObject templates = new com.google.gson.JsonObject();
+            File file = REWARDS_FILE.toFile();
+            if (file.exists()) {
+                try {
+                    String existingContent = Files.readString(REWARDS_FILE);
+                    com.google.gson.JsonElement existingJson = GSON.fromJson(existingContent, com.google.gson.JsonElement.class);
+                    if (existingJson.isJsonObject() && existingJson.getAsJsonObject().has("templates")) {
+                        templates = existingJson.getAsJsonObject().getAsJsonObject("templates");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            output.add("templates", templates);
+            output.add("tiers", incoming);
+            
+            Files.writeString(REWARDS_FILE, GSON.toJson(output));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -638,11 +686,21 @@ public class DataManager {
     }
 
     public static void saveProgress(PlayerProgress progress) {
-        File file = PLAYERS_DIR.resolve(progress.getUuid().toString() + ".json").toFile();
-        try (FileWriter writer = new FileWriter(file)) {
-            GSON.toJson(progress, writer);
+        Path targetPath = PLAYERS_DIR.resolve(progress.getUuid().toString() + ".json");
+        Path tempPath = PLAYERS_DIR.resolve(progress.getUuid().toString() + ".json.tmp");
+        try {
+            try (FileWriter writer = new FileWriter(tempPath.toFile())) {
+                GSON.toJson(progress, writer);
+            }
+            Files.move(tempPath, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             e.printStackTrace();
+            // Fallback to direct write if atomic move fails
+            try (FileWriter writer = new FileWriter(targetPath.toFile())) {
+                GSON.toJson(progress, writer);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

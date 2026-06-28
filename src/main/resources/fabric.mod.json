@@ -29,5 +29,9 @@
     "minecraft": "~1.21.1",
     "fabric-api": "*",
     "cobblemon": "*"
+  },
+  "suggests": {
+    "rctapi": "*",
+    "rctmod": "*"
   }
 }

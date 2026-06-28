@@ -76,6 +76,9 @@ public class CobblePassClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(NetworkPackets.SyncFullQuestsPayload.TYPE, (payload, context) -> {
             context.client().execute(() -> {
                 fullQuestsPool = GSON.fromJson(payload.fullQuestsJson(), new TypeToken<List<Quest>>() {}.getType());
+                if (context.client().currentScreen instanceof com.cobblepass.client.AdminPanelScreen adminScreen) {
+                    adminScreen.refreshQuests(fullQuestsPool);
+                }
             });
         });
 

@@ -16,6 +16,10 @@ import java.util.UUID;
 import com.cobblemon.mod.common.api.events.pokemon.evolution.EvolutionCompleteEvent;
 import com.cobblemon.mod.common.api.events.pokemon.TradeEvent;
 import com.cobblemon.mod.common.api.events.pokemon.HatchEggEvent;
+import com.cobblemon.mod.common.api.events.battles.BattleFaintedEvent;
+import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
+import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
+import com.cobblemon.mod.common.battles.BattleSide;
 
 public class QuestListener {
 
@@ -35,14 +39,14 @@ public class QuestListener {
         CobblemonEvents.BATTLE_VICTORY.subscribe(Priority.NORMAL, event -> {
             if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
             event.getWinners().forEach(winner -> {
-                if (CobblePassServer.server != null) {
-                    ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(winner.getUuid());
-                    if (player != null) {
-                        handleQuestProgress(player, Quest.Type.DEFEAT_POKEMON, "any", 1);
-                        
-                        // Passive XP for defeating a Pokemon: +3 XP (action bar)
-                        DataManager.addXp(player, 3);
-                        player.sendMessage(Text.literal("§a+3 XP (Victoria de Batalla)"), true);
+                if (CobblePassServer.server != null && winner.getPlayerUUIDs() != null) {
+                    for (java.util.UUID playerUuid : winner.getPlayerUUIDs()) {
+                        ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(playerUuid);
+                        if (player != null) {
+                            // Passive XP for winning a battle: +3 XP (action bar)
+                            DataManager.addXp(player, 3);
+                            player.sendMessage(Text.literal("§a+3 XP (Victoria de Batalla)"), true);
+                        }
                     }
                 }
             });
@@ -113,6 +117,33 @@ public class QuestListener {
             }
             return kotlin.Unit.INSTANCE;
         });
+
+        // 7. Cobblemon: Battle Fainted
+        CobblemonEvents.BATTLE_FAINTED.subscribe(Priority.NORMAL, event -> {
+            if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
+            BattlePokemon killed = event.getKilled();
+            if (killed != null && killed.getOriginalPokemon() != null) {
+                BattleActor faintedActor = killed.getActor();
+                if (faintedActor != null && faintedActor.getSide() != null) {
+                    BattleSide oppositeSide = faintedActor.getSide().getOppositeSide();
+                    if (oppositeSide != null && oppositeSide.getActors() != null) {
+                        for (BattleActor oppositeActor : oppositeSide.getActors()) {
+                            if (oppositeActor != null && oppositeActor.getPlayerUUIDs() != null) {
+                                for (java.util.UUID playerUuid : oppositeActor.getPlayerUUIDs()) {
+                                    if (CobblePassServer.server != null) {
+                                        ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(playerUuid);
+                                        if (player != null) {
+                                            handleDefeat(player, killed.getOriginalPokemon());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return kotlin.Unit.INSTANCE;
+        });
     }
 
     private static boolean matchesPokemon(Quest quest, Pokemon pokemon) {
@@ -147,6 +178,15 @@ public class QuestListener {
         // Passive XP for capture: +5 XP (action bar)
         DataManager.addXp(player, 5);
         player.sendMessage(Text.literal("§a+5 XP (Captura)"), true);
+    }
+
+    private static void handleDefeat(ServerPlayerEntity player, Pokemon pokemon) {
+        List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
+        for (Quest quest : activeQuests) {
+            if (quest.getType() == Quest.Type.DEFEAT_POKEMON && matchesPokemon(quest, pokemon)) {
+                incrementProgress(player, quest);
+            }
+        }
     }
 
     private static void handleEvolution(ServerPlayerEntity player, Pokemon pokemon) {

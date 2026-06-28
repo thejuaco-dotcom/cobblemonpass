@@ -156,4 +156,19 @@ public class NetworkPackets {
             return TYPE;
         }
     }
+
+    public static final Identifier REQUEST_FULL_QUESTS_ID = Identifier.of("cobblepass", "request_full_quests");
+
+    public record RequestFullQuestsPayload() implements CustomPayload {
+        public static final CustomPayload.Id<RequestFullQuestsPayload> TYPE = new CustomPayload.Id<>(REQUEST_FULL_QUESTS_ID);
+        public static final PacketCodec<RegistryByteBuf, RequestFullQuestsPayload> CODEC = PacketCodec.of(
+                (value, buf) -> {},
+                buf -> new RequestFullQuestsPayload()
+        );
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return TYPE;
+        }
+    }
 }

@@ -141,6 +141,41 @@ public class BattlePassScreen extends Screen {
             renderQuests(context, mouseX, mouseY);
         } else {
             renderRewards(context, mouseX, mouseY, delta);
+
+            // Draw Item Tooltips when hovering over item rewards in the details card
+            Reward reward = rewards.stream().filter(r -> r.getLevel() == selectedTimelineLevel).findFirst().orElse(null);
+            if (reward != null) {
+                int cardX = startX + 15;
+                int cardY = startY + 92;
+                int cardW = panelWidth - 30;
+                int halfW = (cardW - 10) / 2;
+                int itemY = cardY + 24;
+
+                // Free Reward Hover
+                Reward.Action freeAction = reward.getFreeReward();
+                if (freeAction != null && freeAction.getType() == Reward.Type.ITEM) {
+                    int freeItemX = cardX + 5 + (halfW - 16) / 2;
+                    if (mouseX >= freeItemX && mouseX <= freeItemX + 16 && mouseY >= itemY && mouseY <= itemY + 16) {
+                        net.minecraft.item.ItemStack freeStack = getItemStackForAction(freeAction);
+                        if (!freeStack.isEmpty()) {
+                            context.drawItemTooltip(this.textRenderer, freeStack, mouseX, mouseY);
+                        }
+                    }
+                }
+
+                // Premium Reward Hover
+                Reward.Action premAction = reward.getPremiumReward();
+                if (premAction != null && premAction.getType() == Reward.Type.ITEM) {
+                    int rightX = cardX + 5 + halfW + 5;
+                    int premItemX = rightX + (halfW - 16) / 2;
+                    if (mouseX >= premItemX && mouseX <= premItemX + 16 && mouseY >= itemY && mouseY <= itemY + 16) {
+                        net.minecraft.item.ItemStack premStack = getItemStackForAction(premAction);
+                        if (!premStack.isEmpty()) {
+                            context.drawItemTooltip(this.textRenderer, premStack, mouseX, mouseY);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -408,17 +443,14 @@ public class BattlePassScreen extends Screen {
         int cardW = panelWidth - 30;
         int cardHeight = 110;
 
+        // Draw background boxes and Pokemon models/items first
         context.fill(cardX, cardY, cardX + cardW, cardY + cardHeight, 0xFF181A21);
         
         int halfW = (cardW - 10) / 2;
         
-        // --- Left Half: Free Reward ---
+        // --- Left Half: Free Reward Background and Model ---
         int leftX = cardX + 5;
         context.fill(leftX, cardY + 5, leftX + halfW, cardY + cardHeight - 5, 0xFF222530);
-        
-        String freeTitle = "GRATIS (LVL " + selectedTimelineLevel + ")";
-        int freeTitleW = this.textRenderer.getWidth(freeTitle);
-        context.drawText(this.textRenderer, freeTitle, leftX + (halfW - freeTitleW) / 2, cardY + 10, 0xFF9CA3AF, false);
         
         Reward.Action freeAction = reward.getFreeReward();
         if (freeAction != null && freeAction.getType() == Reward.Type.POKEMON) {
@@ -430,6 +462,30 @@ public class BattlePassScreen extends Screen {
             }
         }
         
+        // --- Right Half: Premium Reward Background and Model ---
+        int rightX = cardX + 5 + halfW + 5;
+        context.fill(rightX, cardY + 5, rightX + halfW, cardY + cardHeight - 5, 0xFF2A2823);
+        context.fill(rightX, cardY + 5, rightX + halfW, cardY + 7, 0xFFEAB308);
+
+        Reward.Action premAction = reward.getPremiumReward();
+        if (premAction != null && premAction.getType() == Reward.Type.POKEMON) {
+            drawPokemonModel(context, premAction.getValue(), rightX + (halfW) / 2, cardY + 28, delta, premiumFloatingState);
+        } else {
+            net.minecraft.item.ItemStack premStack = getItemStackForAction(premAction);
+            if (!premStack.isEmpty()) {
+                context.drawItem(premStack, rightX + (halfW - 16) / 2, cardY + 24);
+            }
+        }
+
+        // --- Render all Texts and Interactive Buttons at Z = 150.0f (In front of models) ---
+        context.getMatrices().push();
+        context.getMatrices().translate(0, 0, 150.0f);
+
+        // --- Left Half Texts/Buttons ---
+        String freeTitle = "GRATIS (LVL " + selectedTimelineLevel + ")";
+        int freeTitleW = this.textRenderer.getWidth(freeTitle);
+        context.drawText(this.textRenderer, freeTitle, leftX + (halfW - freeTitleW) / 2, cardY + 10, 0xFF9CA3AF, false);
+
         String freeText = freeAction != null ? (freeAction.getType() == Reward.Type.POKEMON ? "" : freeAction.getAmount() + "x ") + formatRewardName(freeAction) : "Ninguno";
         freeText = truncateText(freeText, 170);
         int freeTextW = this.textRenderer.getWidth(freeText);
@@ -461,24 +517,10 @@ public class BattlePassScreen extends Screen {
             context.drawText(this.textRenderer, statusText, leftX + (halfW - statusTextW) / 2, cardY + 76, 0xFF6B7280, false);
         }
 
-        // --- Right Half: Premium Reward ---
-        int rightX = cardX + 5 + halfW + 5;
-        context.fill(rightX, cardY + 5, rightX + halfW, cardY + cardHeight - 5, 0xFF2A2823);
-        context.fill(rightX, cardY + 5, rightX + halfW, cardY + 7, 0xFFEAB308);
-
+        // --- Right Half Texts/Buttons ---
         String premTitle = "PREMIUM (LVL " + selectedTimelineLevel + ")";
         int premTitleW = this.textRenderer.getWidth(premTitle);
         context.drawText(this.textRenderer, premTitle, rightX + (halfW - premTitleW) / 2, cardY + 10, 0xFFFDE047, false);
-
-        Reward.Action premAction = reward.getPremiumReward();
-        if (premAction != null && premAction.getType() == Reward.Type.POKEMON) {
-            drawPokemonModel(context, premAction.getValue(), rightX + (halfW) / 2, cardY + 28, delta, premiumFloatingState);
-        } else {
-            net.minecraft.item.ItemStack premStack = getItemStackForAction(premAction);
-            if (!premStack.isEmpty()) {
-                context.drawItem(premStack, rightX + (halfW - 16) / 2, cardY + 24);
-            }
-        }
 
         String premText = premAction != null ? (premAction.getType() == Reward.Type.POKEMON ? "" : premAction.getAmount() + "x ") + formatRewardName(premAction) : "Ninguno";
         premText = truncateText(premText, 170);
@@ -514,6 +556,8 @@ public class BattlePassScreen extends Screen {
             int statusTextW = this.textRenderer.getWidth(statusText);
             context.drawText(this.textRenderer, statusText, rightX + (halfW - statusTextW) / 2, cardY + 76, 0xFF6B7280, false);
         }
+
+        context.getMatrices().pop();
     }
 
     @Override
@@ -781,10 +825,69 @@ public class BattlePassScreen extends Screen {
             }
         } else if (action.getType() == Reward.Type.ITEM) {
             String val = action.getValue();
-            net.minecraft.util.Identifier itemId = net.minecraft.util.Identifier.of(val);
+            if (val.contains("[")) {
+                val = val.substring(0, val.indexOf('['));
+            } else if (val.contains("{")) {
+                val = val.substring(0, val.indexOf('{'));
+            }
+            net.minecraft.util.Identifier itemId = net.minecraft.util.Identifier.of(val.trim());
             net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(itemId);
             if (item != null) {
-                return new net.minecraft.item.ItemStack(item, action.getAmount());
+                net.minecraft.item.ItemStack stack = new net.minecraft.item.ItemStack(item, action.getAmount());
+                if (action.getNbt() != null && !action.getNbt().isEmpty()) {
+                    try {
+                        String nbtStr = action.getNbt().trim();
+                        nbtStr = nbtStr.replaceAll("(?<!\")\\b([a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+)\\b(?!\")\\s*([:=])", "\"$1\"$2");
+                        StringBuilder sb = new StringBuilder();
+                        boolean inQuotes = false;
+                        for (int i = 0; i < nbtStr.length(); i++) {
+                            char c = nbtStr.charAt(i);
+                            if (c == '"' && (i == 0 || nbtStr.charAt(i - 1) != '\\')) {
+                                inQuotes = !inQuotes;
+                            }
+                            if (c == '=' && !inQuotes) {
+                                sb.append(':');
+                            } else {
+                                sb.append(c);
+                            }
+                        }
+                        nbtStr = sb.toString().trim();
+                        if (!nbtStr.startsWith("{")) {
+                            nbtStr = "{" + nbtStr + "}";
+                        }
+                        net.minecraft.nbt.NbtCompound userNbt = net.minecraft.nbt.StringNbtReader.parse(nbtStr);
+                        net.minecraft.nbt.NbtCompound rootNbt = new net.minecraft.nbt.NbtCompound();
+                        if (userNbt.contains("id") || userNbt.contains("components") || userNbt.contains("tag")) {
+                            rootNbt = userNbt;
+                        } else {
+                            rootNbt.put("components", userNbt);
+                        }
+                        if (!rootNbt.contains("id")) {
+                            rootNbt.putString("id", val.trim());
+                        }
+                        if (!rootNbt.contains("count")) {
+                            rootNbt.putInt("count", action.getAmount());
+                        }
+
+                        var client = net.minecraft.client.MinecraftClient.getInstance();
+                        net.minecraft.registry.RegistryWrapper.WrapperLookup registries = null;
+                        if (client.world != null) {
+                            registries = client.world.getRegistryManager();
+                        } else if (client.getNetworkHandler() != null) {
+                            registries = client.getNetworkHandler().getRegistryManager();
+                        }
+
+                        if (registries != null) {
+                            net.minecraft.item.ItemStack customStack = net.minecraft.item.ItemStack.fromNbt(registries, rootNbt).orElse(net.minecraft.item.ItemStack.EMPTY);
+                            if (!customStack.isEmpty()) {
+                                stack = customStack;
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return stack;
             }
         } else if (action.getType() == Reward.Type.COMMAND) {
             if (action.getValue().contains("diamond")) {
@@ -816,6 +919,11 @@ public class BattlePassScreen extends Screen {
     }
 
     private String formatItemName(String itemId) {
+        if (itemId.contains("[")) {
+            itemId = itemId.substring(0, itemId.indexOf('['));
+        } else if (itemId.contains("{")) {
+            itemId = itemId.substring(0, itemId.indexOf('{'));
+        }
         String[] parts = itemId.split(":");
         String name = parts[parts.length - 1];
         name = name.replace("_", " ");
@@ -894,7 +1002,7 @@ public class BattlePassScreen extends Screen {
             boolean shiny = value.contains("shiny=true") || value.contains("shiny");
             net.minecraft.util.Identifier speciesId = net.minecraft.util.Identifier.of("cobblemon", species);
             
-            float yaw = (System.currentTimeMillis() / 40F) % 360F;
+            float yaw = 35f;
             org.joml.Quaternionf rotation = com.cobblemon.mod.common.util.math.QuaternionUtilsKt.fromEulerXYZDegrees(
                 new org.joml.Quaternionf(), 
                 new org.joml.Vector3f(13f, yaw, 0f)
@@ -917,8 +1025,8 @@ public class BattlePassScreen extends Screen {
                 com.cobblemon.mod.common.entity.PoseType.PROFILE,
                 floatingState,
                 delta,
-                6.0f, // scale
-                false, // useProfileScale
+                22.0f, // scale
+                true, // useProfileScale
                 false, // useBaseScale
                 false, // doQuirks
                 1.0f,

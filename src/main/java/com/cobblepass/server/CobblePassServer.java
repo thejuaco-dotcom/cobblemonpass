@@ -31,6 +31,10 @@ public class CobblePassServer implements ModInitializer {
 
         // Initialize server instance
         ServerLifecycleEvents.SERVER_STARTING.register(s -> server = s);
+        ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
+            DataManager.saveAllCached();
+            server = null;
+        });
 
         // Reflection check for BattleActor class methods
         try {
@@ -54,8 +58,18 @@ public class CobblePassServer implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(NetworkPackets.SaveQuestsPayload.TYPE, NetworkPackets.SaveQuestsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.SaveRewardsPayload.TYPE, NetworkPackets.SaveRewardsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.SaveConfigPayload.TYPE, NetworkPackets.SaveConfigPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NetworkPackets.RequestFullQuestsPayload.TYPE, NetworkPackets.RequestFullQuestsPayload.CODEC);
 
         // 3. Register Network Packet Receivers
+        ServerPlayNetworking.registerGlobalReceiver(NetworkPackets.RequestFullQuestsPayload.TYPE, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            if (player.hasPermissionLevel(2)) {
+                context.server().execute(() -> {
+                    ServerPlayNetworking.send(player, new NetworkPackets.SyncFullQuestsPayload(DataManager.getQuestsJson()));
+                });
+            }
+        });
+
         ServerPlayNetworking.registerGlobalReceiver(NetworkPackets.ClaimRewardPayload.TYPE, (payload, context) -> {
             ServerPlayerEntity player = context.player();
             int level = payload.level();
@@ -413,20 +427,51 @@ public class CobblePassServer implements ModInitializer {
     private static void executeRewardAction(ServerPlayerEntity player, Reward.Action action) {
         switch (action.getType()) {
             case ITEM:
-                Identifier itemId = Identifier.of(action.getValue());
+                String val = action.getValue();
+                if (val.contains("[")) {
+                    val = val.substring(0, val.indexOf('['));
+                } else if (val.contains("{")) {
+                    val = val.substring(0, val.indexOf('{'));
+                }
+                Identifier itemId = Identifier.of(val.trim());
                 net.minecraft.item.Item item = Registries.ITEM.get(itemId);
                 if (item != null) {
                     ItemStack stack = new ItemStack(item, action.getAmount());
                     if (action.getNbt() != null && !action.getNbt().isEmpty()) {
                         try {
-                            net.minecraft.nbt.NbtCompound nbt = net.minecraft.nbt.StringNbtReader.parse(action.getNbt());
-                            if (!nbt.contains("id")) {
-                                nbt.putString("id", action.getValue());
+                            String nbtStr = action.getNbt().trim();
+                            nbtStr = nbtStr.replaceAll("(?<!\")\\b([a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+)\\b(?!\")\\s*([:=])", "\"$1\"$2");
+                            StringBuilder sb = new StringBuilder();
+                            boolean inQuotes = false;
+                            for (int i = 0; i < nbtStr.length(); i++) {
+                                char c = nbtStr.charAt(i);
+                                if (c == '"' && (i == 0 || nbtStr.charAt(i - 1) != '\\')) {
+                                    inQuotes = !inQuotes;
+                                }
+                                if (c == '=' && !inQuotes) {
+                                    sb.append(':');
+                                } else {
+                                    sb.append(c);
+                                }
                             }
-                            if (!nbt.contains("count")) {
-                                nbt.putInt("count", action.getAmount());
+                            nbtStr = sb.toString().trim();
+                            if (!nbtStr.startsWith("{")) {
+                                nbtStr = "{" + nbtStr + "}";
                             }
-                            ItemStack customStack = ItemStack.fromNbt(player.getRegistryManager(), nbt).orElse(ItemStack.EMPTY);
+                            net.minecraft.nbt.NbtCompound userNbt = net.minecraft.nbt.StringNbtReader.parse(nbtStr);
+                            net.minecraft.nbt.NbtCompound rootNbt = new net.minecraft.nbt.NbtCompound();
+                            if (userNbt.contains("id") || userNbt.contains("components") || userNbt.contains("tag")) {
+                                rootNbt = userNbt;
+                            } else {
+                                rootNbt.put("components", userNbt);
+                            }
+                            if (!rootNbt.contains("id")) {
+                                rootNbt.putString("id", val.trim());
+                            }
+                            if (!rootNbt.contains("count")) {
+                                rootNbt.putInt("count", action.getAmount());
+                            }
+                            ItemStack customStack = ItemStack.fromNbt(player.getRegistryManager(), rootNbt).orElse(ItemStack.EMPTY);
                             if (!customStack.isEmpty()) {
                                 stack = customStack;
                             }
@@ -443,7 +488,7 @@ public class CobblePassServer implements ModInitializer {
                 player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), command);
                 break;
             case POKEMON:
-                String pokeCmd = "pokegive " + player.getName().getString() + " " + action.getValue();
+                String pokeCmd = "pokegiveother " + player.getName().getString() + " " + action.getValue();
                 player.getServer().getCommandManager().executeWithPrefix(player.getServer().getCommandSource(), pokeCmd);
                 break;
         }

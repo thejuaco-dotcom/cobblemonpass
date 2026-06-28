@@ -52,14 +52,22 @@ public class AdminPanelScreen extends Screen {
     private TextFieldWidget freeValField;
     private TextFieldWidget freeAmtField;
     private TextFieldWidget freeTempField;
+    private TextFieldWidget freeNbtField;
     private TextFieldWidget premTypeField;
     private TextFieldWidget premValField;
     private TextFieldWidget premAmtField;
     private TextFieldWidget premTempField;
+    private TextFieldWidget premNbtField;
 
     public AdminPanelScreen(Screen parent) {
         super(Text.literal("CobblePass Admin Panel"));
         this.parent = parent;
+
+        try {
+            ClientPlayNetworking.send(new NetworkPackets.RequestFullQuestsPayload());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         List<Quest> sourceQuests = CobblePassClient.fullQuestsPool != null ? CobblePassClient.fullQuestsPool : CobblePassClient.quests;
         if (sourceQuests != null) {
@@ -182,6 +190,11 @@ public class AdminPanelScreen extends Screen {
                 freeTempField.setMaxLength(64);
                 this.addDrawableChild(freeTempField);
 
+                freeNbtField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 160, 80, 12, Text.literal("Free NBT"));
+                freeNbtField.setText(free != null && free.getNbt() != null ? free.getNbt() : "");
+                freeNbtField.setMaxLength(1024);
+                this.addDrawableChild(freeNbtField);
+
                 Reward.Action prem = r.getPremiumReward();
                 premTypeField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 80, 110, 12, Text.literal("Prem Type"));
                 premTypeField.setText(prem != null ? prem.getType().name() : "");
@@ -202,6 +215,11 @@ public class AdminPanelScreen extends Screen {
                 premTempField.setText(prem != null && prem.getTemplateRef() != null ? prem.getTemplateRef() : "");
                 premTempField.setMaxLength(64);
                 this.addDrawableChild(premTempField);
+
+                premNbtField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 160, 110, 12, Text.literal("Prem NBT"));
+                premNbtField.setText(prem != null && prem.getNbt() != null ? prem.getNbt() : "");
+                premNbtField.setMaxLength(1024);
+                this.addDrawableChild(premNbtField);
             }
         }
     }
@@ -462,6 +480,7 @@ public class AdminPanelScreen extends Screen {
         context.drawText(this.textRenderer, "Valor:", col1X, startY + 102, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Cant:", col1X, startY + 122, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Plant:", col1X, startY + 142, 0xFF9CA3AF, false);
+        context.drawText(this.textRenderer, "NBT:", col1X, startY + 162, 0xFF9CA3AF, false);
 
         // Labels Column 2 (Premium)
         int col2X = startX + 230;
@@ -469,11 +488,12 @@ public class AdminPanelScreen extends Screen {
         context.drawText(this.textRenderer, "Valor:", col2X, startY + 102, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Cant:", col2X, startY + 122, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Plant:", col2X, startY + 142, 0xFF9CA3AF, false);
+        context.drawText(this.textRenderer, "NBT:", col2X, startY + 162, 0xFF9CA3AF, false);
 
         // Apply Level reward button (aligned to X + 135)
         int saveW = 85;
         int saveX = startX + 135;
-        int saveY = startY + 160;
+        int saveY = startY + 185;
         boolean hoverLvlSave = mouseX >= saveX && mouseX <= saveX + saveW && mouseY >= saveY && mouseY <= saveY + 14;
         context.fill(saveX, saveY, saveX + saveW, saveY + 14, hoverLvlSave ? 0xFF15803D : 0xFF166534);
         context.drawText(this.textRenderer, "Aplicar Nivel", saveX + 10, saveY + 3, 0xFFFFFFFF, false);
@@ -493,6 +513,8 @@ public class AdminPanelScreen extends Screen {
         int backY = startY + 10;
         if (mouseX >= backX && mouseX <= backX + 55 && mouseY >= backY && mouseY <= backY + 12) {
             playClickSound();
+            if (activeTab.equals("quests")) applyQuestChanges();
+            if (activeTab.equals("rewards")) applyRewardLevelChanges();
             MinecraftClient.getInstance().setScreen(parent);
             return true;
         }
@@ -505,6 +527,8 @@ public class AdminPanelScreen extends Screen {
         int tabSeasonX = startX + 15;
         if (mouseX >= tabSeasonX && mouseX <= tabSeasonX + tabW && mouseY >= tabY && mouseY <= tabY + tabH) {
             if (!activeTab.equals("season")) {
+                if (activeTab.equals("quests")) applyQuestChanges();
+                if (activeTab.equals("rewards")) applyRewardLevelChanges();
                 activeTab = "season";
                 playClickSound();
                 clearAndInitWidgets();
@@ -515,6 +539,7 @@ public class AdminPanelScreen extends Screen {
         int tabQuestsX = tabSeasonX + tabW + 5;
         if (mouseX >= tabQuestsX && mouseX <= tabQuestsX + tabW && mouseY >= tabY && mouseY <= tabY + tabH) {
             if (!activeTab.equals("quests")) {
+                if (activeTab.equals("rewards")) applyRewardLevelChanges();
                 activeTab = "quests";
                 selectedQuestIndex = localQuests.isEmpty() ? -1 : 0;
                 playClickSound();
@@ -526,6 +551,7 @@ public class AdminPanelScreen extends Screen {
         int tabRewardsX = tabQuestsX + tabW + 5;
         if (mouseX >= tabRewardsX && mouseX <= tabRewardsX + tabW && mouseY >= tabY && mouseY <= tabY + tabH) {
             if (!activeTab.equals("rewards")) {
+                if (activeTab.equals("quests")) applyQuestChanges();
                 activeTab = "rewards";
                 selectedRewardLevel = 1;
                 playClickSound();
@@ -588,6 +614,7 @@ public class AdminPanelScreen extends Screen {
             if (mouseX >= listX && mouseX <= listX + listW - 14 && mouseY >= listY && mouseY <= listY + listH) {
                 int clickedIndex = questScrollIndex + (int)((mouseY - listY) / rowH);
                 if (clickedIndex >= 0 && clickedIndex < localQuests.size()) {
+                    applyQuestChanges();
                     selectedQuestIndex = clickedIndex;
                     playClickSound();
                     clearAndInitWidgets();
@@ -650,6 +677,9 @@ public class AdminPanelScreen extends Screen {
             int cmdY = startY + 195;
             if (mouseX >= cmdX && mouseX <= cmdX + 60 && mouseY >= cmdY && mouseY <= cmdY + 14) {
                 playClickSound();
+                if (selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
+                    applyQuestChanges();
+                }
                 Quest newQuest = new Quest("quest_" + System.currentTimeMillis(), "Nueva Misión", "Detalle de la misión", Quest.Type.CAPTURE_POKEMON, "any", 10, 150, "DAILY");
                 localQuests.add(newQuest);
                 selectedQuestIndex = localQuests.size() - 1;
@@ -674,6 +704,7 @@ public class AdminPanelScreen extends Screen {
             if (mouseX >= listX && mouseX <= listX + listW - 14 && mouseY >= listY && mouseY <= listY + listH) {
                 int clickedLvl = rewardScrollIndex + 1 + (int)((mouseY - listY) / rowH);
                 if (clickedLvl >= 1 && clickedLvl <= localRewards.size()) {
+                    applyRewardLevelChanges();
                     selectedRewardLevel = clickedLvl;
                     playClickSound();
                     clearAndInitWidgets();
@@ -712,7 +743,7 @@ public class AdminPanelScreen extends Screen {
             // Apply Level Reward Changes (aligned to X + 135)
             int saveW = 85;
             int saveX = startX + 135;
-            int saveY = startY + 160;
+            int saveY = startY + 185;
             if (mouseX >= saveX && mouseX <= saveX + saveW && mouseY >= saveY && mouseY <= saveY + 14) {
                 playClickSound();
                 applyRewardLevelChanges();
@@ -827,6 +858,7 @@ public class AdminPanelScreen extends Screen {
 
     private void sendQuestsToServer() {
         try {
+            applyQuestChanges();
             String json = GSON.toJson(localQuests);
             ClientPlayNetworking.send(new NetworkPackets.SaveQuestsPayload(json));
         } catch (Exception e) {
@@ -843,15 +875,22 @@ public class AdminPanelScreen extends Screen {
 
             // Free Reward
             String freeType = freeTypeField.getText().trim().toUpperCase();
-            if (!freeType.isEmpty()) {
+            String freeTemp = freeTempField.getText().trim();
+            if (!freeType.isEmpty() || !freeTemp.isEmpty()) {
                 try {
-                    Reward.Type t = Reward.Type.valueOf(freeType);
+                    Reward.Type t = freeType.isEmpty() ? Reward.Type.ITEM : Reward.Type.valueOf(freeType);
                     String val = freeValField.getText().trim();
-                    int amt = Integer.parseInt(freeAmtField.getText().trim());
+                    int amt = 1;
+                    try {
+                        amt = Integer.parseInt(freeAmtField.getText().trim());
+                    } catch (Exception e) {}
                     Reward.Action action = new Reward.Action(t, val, amt);
-                    String temp = freeTempField.getText().trim();
-                    if (!temp.isEmpty()) {
-                        action.setTemplateRef(temp);
+                    if (!freeTemp.isEmpty()) {
+                        action.setTemplateRef(freeTemp);
+                    }
+                    String freeNbt = freeNbtField.getText().trim();
+                    if (!freeNbt.isEmpty()) {
+                        action.setNbt(freeNbt);
                     }
                     r.setFreeReward(action);
                 } catch (Exception e) {}
@@ -861,15 +900,22 @@ public class AdminPanelScreen extends Screen {
 
             // Premium Reward
             String premType = premTypeField.getText().trim().toUpperCase();
-            if (!premType.isEmpty()) {
+            String premTemp = premTempField.getText().trim();
+            if (!premType.isEmpty() || !premTemp.isEmpty()) {
                 try {
-                    Reward.Type t = Reward.Type.valueOf(premType);
+                    Reward.Type t = premType.isEmpty() ? Reward.Type.ITEM : Reward.Type.valueOf(premType);
                     String val = premValField.getText().trim();
-                    int amt = Integer.parseInt(premAmtField.getText().trim());
+                    int amt = 1;
+                    try {
+                        amt = Integer.parseInt(premAmtField.getText().trim());
+                    } catch (Exception e) {}
                     Reward.Action action = new Reward.Action(t, val, amt);
-                    String temp = premTempField.getText().trim();
-                    if (!temp.isEmpty()) {
-                        action.setTemplateRef(temp);
+                    if (!premTemp.isEmpty()) {
+                        action.setTemplateRef(premTemp);
+                    }
+                    String premNbt = premNbtField.getText().trim();
+                    if (!premNbt.isEmpty()) {
+                        action.setNbt(premNbt);
                     }
                     r.setPremiumReward(action);
                 } catch (Exception e) {}
@@ -881,10 +927,22 @@ public class AdminPanelScreen extends Screen {
 
     private void sendRewardsToServer() {
         try {
+            applyRewardLevelChanges();
             String json = GSON.toJson(localRewards);
             ClientPlayNetworking.send(new NetworkPackets.SaveRewardsPayload(json));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void refreshQuests(List<Quest> questsPool) {
+        this.localQuests.clear();
+        if (questsPool != null) {
+            for (Quest q : questsPool) {
+                this.localQuests.add(new Quest(q.getId(), q.getTitle(), q.getDescription(), q.getType(), q.getTarget(), q.getRequiredAmount(), q.getXpReward(), q.getCategory()));
+            }
+        }
+        this.selectedQuestIndex = -1;
+        this.clearAndInitWidgets();
     }
 }
