@@ -60,7 +60,7 @@ public class AdminPanelScreen extends Screen {
     private TextFieldWidget premNbtField;
 
     public AdminPanelScreen(Screen parent) {
-        super(Text.literal("CobblePass Admin Panel"));
+        super(Text.literal("Cobblemonpass Admin Panel"));
         this.parent = parent;
 
         try {

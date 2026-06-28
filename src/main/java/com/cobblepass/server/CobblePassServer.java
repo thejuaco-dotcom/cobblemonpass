@@ -139,9 +139,46 @@ public class CobblePassServer implements ModInitializer {
 
         // 5. Register Admin and Player Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(CommandManager.literal("cobblepass")
-                    .requires(source -> source.hasPermissionLevel(2)) // Admin command
+            var builder = CommandManager.literal("cobblemonpass")
+                    .executes(context -> {
+                        ServerPlayerEntity player = context.getSource().getPlayer();
+                        if (player != null) {
+                            if (ServerPlayNetworking.canSend(player, NetworkPackets.OpenBattlePassPayload.TYPE)) {
+                                ServerPlayNetworking.send(player, new NetworkPackets.OpenBattlePassPayload());
+                            } else {
+                                player.sendMessage(Text.literal("§cNecesitas tener instalado el mod Cobblemonpass en tu cliente para abrir la interfaz del pase de batalla."));
+                            }
+                        }
+                        return 1;
+                    })
+                    .then(CommandManager.literal("open")
+                            .executes(context -> {
+                                ServerPlayerEntity player = context.getSource().getPlayer();
+                                if (player != null) {
+                                    if (ServerPlayNetworking.canSend(player, NetworkPackets.OpenBattlePassPayload.TYPE)) {
+                                        ServerPlayNetworking.send(player, new NetworkPackets.OpenBattlePassPayload());
+                                    } else {
+                                        player.sendMessage(Text.literal("§cNecesitas tener instalado el mod Cobblemonpass en tu cliente para abrir la interfaz del pase de batalla."));
+                                    }
+                                }
+                                return 1;
+                            })
+                    )
+                    .then(CommandManager.literal("gui")
+                            .executes(context -> {
+                                ServerPlayerEntity player = context.getSource().getPlayer();
+                                if (player != null) {
+                                    if (ServerPlayNetworking.canSend(player, NetworkPackets.OpenBattlePassPayload.TYPE)) {
+                                        ServerPlayNetworking.send(player, new NetworkPackets.OpenBattlePassPayload());
+                                    } else {
+                                        player.sendMessage(Text.literal("§cNecesitas tener instalado el mod Cobblemonpass en tu cliente para abrir la interfaz del pase de batalla."));
+                                    }
+                                }
+                                return 1;
+                            })
+                    )
                     .then(CommandManager.literal("reload")
+                            .requires(source -> source.hasPermissionLevel(2)) // Admin command
                             .executes(context -> {
                                 DataManager.reloadConfigs(context.getSource().getServer());
                                 context.getSource().sendFeedback(() -> Text.literal("§aConfiguraciones recargadas con éxito."), true);
@@ -149,6 +186,7 @@ public class CobblePassServer implements ModInitializer {
                             })
                     )
                     .then(CommandManager.literal("season")
+                            .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.literal("start")
                                     .executes(context -> {
                                         DataManager.startSeason();
@@ -177,6 +215,7 @@ public class CobblePassServer implements ModInitializer {
                             )
                     )
                     .then(CommandManager.literal("addxp")
+                            .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.argument("player", EntityArgumentType.player())
                                     .then(CommandManager.argument("amount", IntegerArgumentType.integer(1))
                                             .executes(context -> {
@@ -190,6 +229,7 @@ public class CobblePassServer implements ModInitializer {
                             )
                     )
                     .then(CommandManager.literal("setpremium")
+                            .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.argument("player", EntityArgumentType.player())
                                     .then(CommandManager.argument("premium", BoolArgumentType.bool())
                                             .executes(context -> {
@@ -206,6 +246,7 @@ public class CobblePassServer implements ModInitializer {
                             )
                     )
                     .then(CommandManager.literal("testcraft")
+                            .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.argument("player", EntityArgumentType.player())
                                     .then(CommandManager.argument("itemId", com.mojang.brigadier.arguments.StringArgumentType.string())
                                             .then(CommandManager.argument("amount", IntegerArgumentType.integer(1))
@@ -220,22 +261,13 @@ public class CobblePassServer implements ModInitializer {
                                             )
                                     )
                             )
-                    )
-            );
+                    );
 
-            dispatcher.register(CommandManager.literal("battlepass")
-                    .executes(context -> {
-                        ServerPlayerEntity player = context.getSource().getPlayer();
-                        if (player != null) {
-                            if (ServerPlayNetworking.canSend(player, NetworkPackets.OpenBattlePassPayload.TYPE)) {
-                                ServerPlayNetworking.send(player, new NetworkPackets.OpenBattlePassPayload());
-                            } else {
-                                player.sendMessage(Text.literal("§cNecesitas tener instalado el mod CobblePass en tu cliente para abrir la interfaz del pase de batalla."));
-                            }
-                        }
-                        return 1;
-                    })
-            );
+            dispatcher.register(builder);
+            
+            // Redirect /cobblepass and /battlepass to /cobblemonpass
+            dispatcher.register(CommandManager.literal("cobblepass").redirect(dispatcher.getRoot().getChild("cobblemonpass")));
+            dispatcher.register(CommandManager.literal("battlepass").redirect(dispatcher.getRoot().getChild("cobblemonpass")));
         });
     }
 

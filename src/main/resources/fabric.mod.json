@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "cobblepass",
   "version": "${version}",
-  "name": "CobblePass",
+  "name": "Cobblemonpass",
   "description": "Pase de Batalla para Cobblemon en Fabric 1.21.1 con estética Pokémon moderna.",
   "authors": [
     "Antigravity & Developer"

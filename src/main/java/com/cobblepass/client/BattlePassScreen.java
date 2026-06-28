@@ -72,7 +72,7 @@ public class BattlePassScreen extends Screen {
         context.fill(startX, startY, startX + panelWidth, startY + 42, 0xFFE13B36);
 
         // Title text
-        context.drawText(this.textRenderer, "COBBLEPASS", startX + 15, startY + 10, 0xFFFFFFFF, true);
+        context.drawText(this.textRenderer, "COBBLEMONPASS", startX + 15, startY + 10, 0xFFFFFFFF, true);
 
         // XP Progress Bar text
         PlayerProgress progress = CobblePassClient.progress;
