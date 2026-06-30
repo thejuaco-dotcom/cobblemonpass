@@ -171,4 +171,19 @@ public class NetworkPackets {
             return TYPE;
         }
     }
+
+    public static final Identifier PIN_QUEST_ID = Identifier.of("cobblepass", "pin_quest");
+
+    public record TogglePinQuestPayload(String questId) implements CustomPayload {
+        public static final CustomPayload.Id<TogglePinQuestPayload> TYPE = new CustomPayload.Id<>(PIN_QUEST_ID);
+        public static final PacketCodec<RegistryByteBuf, TogglePinQuestPayload> CODEC = PacketCodec.tuple(
+                PacketCodecs.STRING, TogglePinQuestPayload::questId,
+                TogglePinQuestPayload::new
+        );
+
+        @Override
+        public CustomPayload.Id<? extends CustomPayload> getId() {
+            return TYPE;
+        }
+    }
 }

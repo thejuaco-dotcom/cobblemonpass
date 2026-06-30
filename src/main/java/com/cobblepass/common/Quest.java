@@ -8,7 +8,13 @@ public class Quest {
         CRAFT_ITEM,
         EVOLVE_POKEMON,
         TRADE_POKEMON,
-        HATCH_EGG
+        HATCH_EGG,
+        RESURRECT_FOSSIL,
+        BREED_POKEMON,
+        MAX_EV_POKEMON,
+        PERFECT_IV_POKEMON,
+        EVOLVE_STONE,
+        EVOLVE_FRIENDSHIP
     }
 
     private String id;

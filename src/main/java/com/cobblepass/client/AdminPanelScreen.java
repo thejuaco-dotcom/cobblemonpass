@@ -10,6 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 
@@ -37,23 +38,23 @@ public class AdminPanelScreen extends Screen {
     private int questScrollIndex = 0;
     private TextFieldWidget questTitleField;
     private TextFieldWidget questDescField;
-    private TextFieldWidget questTypeField;
+    private ButtonWidget questTypeButton;
     private TextFieldWidget questTargetField;
     private TextFieldWidget questReqField;
     private TextFieldWidget questXpField;
-    private TextFieldWidget questCatField;
+    private ButtonWidget questCatButton;
 
     // Reward Fields & Selection
     private List<Reward> localRewards = new ArrayList<>();
     private int selectedRewardLevel = 1;
     private int rewardScrollIndex = 0;
     private TextFieldWidget levelXpField;
-    private TextFieldWidget freeTypeField;
+    private ButtonWidget freeTypeButton;
     private TextFieldWidget freeValField;
     private TextFieldWidget freeAmtField;
     private TextFieldWidget freeTempField;
     private TextFieldWidget freeNbtField;
-    private TextFieldWidget premTypeField;
+    private ButtonWidget premTypeButton;
     private TextFieldWidget premValField;
     private TextFieldWidget premAmtField;
     private TextFieldWidget premTempField;
@@ -136,10 +137,13 @@ public class AdminPanelScreen extends Screen {
                 questDescField.setMaxLength(128);
                 this.addDrawableChild(questDescField);
 
-                questTypeField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 90, 140, 12, Text.literal("Type"));
-                questTypeField.setText(q.getType().name());
-                questTypeField.setMaxLength(32);
-                this.addDrawableChild(questTypeField);
+                questTypeButton = ButtonWidget.builder(Text.literal(q.getType().name()), btn -> {
+                    Quest.Type[] types = Quest.Type.values();
+                    int nextOrd = (q.getType().ordinal() + 1) % types.length;
+                    q.setType(types[nextOrd]);
+                    btn.setMessage(Text.literal(q.getType().name()));
+                }).dimensions(startX + 245, startY + 90, 140, 12).build();
+                this.addDrawableChild(questTypeButton);
 
                 questTargetField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 110, 140, 12, Text.literal("Target"));
                 questTargetField.setText(q.getTarget());
@@ -156,10 +160,15 @@ public class AdminPanelScreen extends Screen {
                 questXpField.setMaxLength(8);
                 this.addDrawableChild(questXpField);
 
-                questCatField = new TextFieldWidget(this.textRenderer, startX + 245, startY + 170, 60, 12, Text.literal("Category"));
-                questCatField.setText(q.getCategory());
-                questCatField.setMaxLength(16);
-                this.addDrawableChild(questCatField);
+                questCatButton = ButtonWidget.builder(Text.literal(q.getCategory()), btn -> {
+                    String current = q.getCategory().toUpperCase();
+                    String next = "SEASONAL";
+                    if (current.equals("SEASONAL")) next = "DAILY";
+                    else if (current.equals("DAILY")) next = "WEEKLY";
+                    q.setCategory(next);
+                    btn.setMessage(Text.literal(next));
+                }).dimensions(startX + 245, startY + 170, 60, 12).build();
+                this.addDrawableChild(questCatButton);
             }
         } else if (activeTab.equals("rewards")) {
             Reward r = localRewards.stream().filter(x -> x.getLevel() == selectedRewardLevel).findFirst().orElse(null);
@@ -170,10 +179,36 @@ public class AdminPanelScreen extends Screen {
                 this.addDrawableChild(levelXpField);
 
                 Reward.Action free = r.getFreeReward();
-                freeTypeField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 80, 80, 12, Text.literal("Free Type"));
-                freeTypeField.setText(free != null ? free.getType().name() : "");
-                freeTypeField.setMaxLength(16);
-                this.addDrawableChild(freeTypeField);
+                String freeTypeStr = free != null ? free.getType().name() : "NONE";
+                freeTypeButton = ButtonWidget.builder(Text.literal(freeTypeStr), btn -> {
+                    String current = btn.getMessage().getString();
+                    String next = "ITEM";
+                    if (current.equals("ITEM")) next = "POKEMON";
+                    else if (current.equals("POKEMON")) next = "COMMAND";
+                    else if (current.equals("COMMAND")) next = "NONE";
+
+                    btn.setMessage(Text.literal(next));
+
+                    if (next.equals("NONE")) {
+                        r.setFreeReward(null);
+                        freeValField.setText("");
+                        freeAmtField.setText("0");
+                        freeTempField.setText("");
+                        freeNbtField.setText("");
+                    } else {
+                        Reward.Action act = r.getFreeReward();
+                        if (act == null) {
+                            act = new Reward.Action(Reward.Type.valueOf(next), "", 1);
+                            r.setFreeReward(act);
+                        } else {
+                            act.setType(Reward.Type.valueOf(next));
+                        }
+                        if (freeAmtField.getText().equals("0")) {
+                            freeAmtField.setText("1");
+                        }
+                    }
+                }).dimensions(startX + 135, startY + 80, 80, 12).build();
+                this.addDrawableChild(freeTypeButton);
 
                 freeValField = new TextFieldWidget(this.textRenderer, startX + 135, startY + 100, 80, 12, Text.literal("Free Value"));
                 freeValField.setText(free != null ? free.getValue() : "");
@@ -196,10 +231,36 @@ public class AdminPanelScreen extends Screen {
                 this.addDrawableChild(freeNbtField);
 
                 Reward.Action prem = r.getPremiumReward();
-                premTypeField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 80, 110, 12, Text.literal("Prem Type"));
-                premTypeField.setText(prem != null ? prem.getType().name() : "");
-                premTypeField.setMaxLength(16);
-                this.addDrawableChild(premTypeField);
+                String premTypeStr = prem != null ? prem.getType().name() : "NONE";
+                premTypeButton = ButtonWidget.builder(Text.literal(premTypeStr), btn -> {
+                    String current = btn.getMessage().getString();
+                    String next = "ITEM";
+                    if (current.equals("ITEM")) next = "POKEMON";
+                    else if (current.equals("POKEMON")) next = "COMMAND";
+                    else if (current.equals("COMMAND")) next = "NONE";
+
+                    btn.setMessage(Text.literal(next));
+
+                    if (next.equals("NONE")) {
+                        r.setPremiumReward(null);
+                        premValField.setText("");
+                        premAmtField.setText("0");
+                        premTempField.setText("");
+                        premNbtField.setText("");
+                    } else {
+                        Reward.Action act = r.getPremiumReward();
+                        if (act == null) {
+                            act = new Reward.Action(Reward.Type.valueOf(next), "", 1);
+                            r.setPremiumReward(act);
+                        } else {
+                            act.setType(Reward.Type.valueOf(next));
+                        }
+                        if (premAmtField.getText().equals("0")) {
+                            premAmtField.setText("1");
+                        }
+                    }
+                }).dimensions(startX + 270, startY + 80, 110, 12).build();
+                this.addDrawableChild(premTypeButton);
 
                 premValField = new TextFieldWidget(this.textRenderer, startX + 270, startY + 100, 110, 12, Text.literal("Prem Value"));
                 premValField.setText(prem != null ? prem.getValue() : "");
@@ -281,6 +342,86 @@ public class AdminPanelScreen extends Screen {
         } else if (activeTab.equals("rewards")) {
             renderRewardsTab(context, mouseX, mouseY);
         }
+
+        // Draw Tooltips for help
+        if (activeTab.equals("quests") && selectedQuestIndex >= 0 && selectedQuestIndex < localQuests.size()) {
+            Quest q = localQuests.get(selectedQuestIndex);
+            if (questTargetField != null && mouseX >= questTargetField.getX() && mouseX <= questTargetField.getX() + questTargetField.getWidth() && mouseY >= questTargetField.getY() && mouseY <= questTargetField.getY() + questTargetField.getHeight()) {
+                java.util.List<net.minecraft.text.Text> lines = new java.util.ArrayList<>();
+                lines.add(net.minecraft.text.Text.literal("§eGuia de Formato para Target:"));
+                switch (q.getType()) {
+                    case CAPTURE_POKEMON:
+                    case DEFEAT_POKEMON:
+                    case EVOLVE_POKEMON:
+                    case TRADE_POKEMON:
+                    case HATCH_EGG:
+                    case RESURRECT_FOSSIL:
+                        lines.add(net.minecraft.text.Text.literal("§7- Especie (ej: §aeevee§7)"));
+                        lines.add(net.minecraft.text.Text.literal("§7- Tipo (ej: §afire§7)"));
+                        lines.add(net.minecraft.text.Text.literal("§7- §aany§7 para cualquier Pokemon"));
+                        break;
+                    case MINE_BLOCK:
+                        lines.add(net.minecraft.text.Text.literal("§7- ID del bloque de Minecraft"));
+                        lines.add(net.minecraft.text.Text.literal("§7  (ej: §aminecraft:iron_ore§7)"));
+                        break;
+                    case CRAFT_ITEM:
+                        lines.add(net.minecraft.text.Text.literal("§7- ID del item de Minecraft"));
+                        lines.add(net.minecraft.text.Text.literal("§7  (ej: §aminecraft:diamond_sword§7)"));
+                        break;
+                    case BREED_POKEMON:
+                        lines.add(net.minecraft.text.Text.literal("§7- Grupo de Huevo (ej: §afield§7)"));
+                        lines.add(net.minecraft.text.Text.literal("§7- Especie (ej: §aeevee§7)"));
+                        lines.add(net.minecraft.text.Text.literal("§7- §aany§7 para cualquier cria"));
+                        break;
+                    case MAX_EV_POKEMON:
+                        lines.add(net.minecraft.text.Text.literal("§7- Estadistica (ej: §aspeed§7, §ahp§7, §aattack§7)"));
+                        lines.add(net.minecraft.text.Text.literal("§7- §aany§7 para cualquier estadistica al maximo"));
+                        break;
+                    case PERFECT_IV_POKEMON:
+                        lines.add(net.minecraft.text.Text.literal("§7- Numero de estadisticas perfectas (31 IVs)"));
+                        lines.add(net.minecraft.text.Text.literal("§7  requeridas (ej: §a2§7)"));
+                        break;
+                }
+                context.drawTooltip(this.textRenderer, lines, mouseX, mouseY);
+            }
+        } else if (activeTab.equals("rewards")) {
+            Reward r = localRewards.stream().filter(x -> x.getLevel() == selectedRewardLevel).findFirst().orElse(null);
+            if (r != null) {
+                if (freeValField != null && mouseX >= freeValField.getX() && mouseX <= freeValField.getX() + freeValField.getWidth() && mouseY >= freeValField.getY() && mouseY <= freeValField.getY() + freeValField.getHeight()) {
+                    String type = freeTypeButton != null ? freeTypeButton.getMessage().getString() : "NONE";
+                    java.util.List<net.minecraft.text.Text> lines = getRewardValueTooltip(type);
+                    if (!lines.isEmpty()) {
+                        context.drawTooltip(this.textRenderer, lines, mouseX, mouseY);
+                    }
+                }
+                if (premValField != null && mouseX >= premValField.getX() && mouseX <= premValField.getX() + premValField.getWidth() && mouseY >= premValField.getY() && mouseY <= premValField.getY() + premValField.getHeight()) {
+                    String type = premTypeButton != null ? premTypeButton.getMessage().getString() : "NONE";
+                    java.util.List<net.minecraft.text.Text> lines = getRewardValueTooltip(type);
+                    if (!lines.isEmpty()) {
+                        context.drawTooltip(this.textRenderer, lines, mouseX, mouseY);
+                    }
+                }
+            }
+        }
+    }
+
+    private java.util.List<net.minecraft.text.Text> getRewardValueTooltip(String type) {
+        java.util.List<net.minecraft.text.Text> lines = new java.util.ArrayList<>();
+        if (type.equals("POKEMON")) {
+            lines.add(net.minecraft.text.Text.literal("§eFormato de Pokemon:"));
+            lines.add(net.minecraft.text.Text.literal("§7- especie [shiny] [level=N] [gender=F/M]"));
+            lines.add(net.minecraft.text.Text.literal("§7  (ej: §apikachu shiny level=15§7)"));
+        } else if (type.equals("COMMAND")) {
+            lines.add(net.minecraft.text.Text.literal("§eFormato de Comando:"));
+            lines.add(net.minecraft.text.Text.literal("§7- Comando sin barra / inicial"));
+            lines.add(net.minecraft.text.Text.literal("§7- Usa §a%player%§7 para el jugador"));
+            lines.add(net.minecraft.text.Text.literal("§7  (ej: §agive %player% diamond 1§7)"));
+        } else if (type.equals("ITEM")) {
+            lines.add(net.minecraft.text.Text.literal("§eFormato de Item:"));
+            lines.add(net.minecraft.text.Text.literal("§7- ID base del item de Minecraft"));
+            lines.add(net.minecraft.text.Text.literal("§7  (ej: §aminecraft:diamond§7)"));
+        }
+        return lines;
     }
 
     private void renderSeasonTab(DrawContext context, int mouseX, int mouseY) {
@@ -489,6 +630,8 @@ public class AdminPanelScreen extends Screen {
         context.drawText(this.textRenderer, "Cant:", col2X, startY + 122, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "Plant:", col2X, startY + 142, 0xFF9CA3AF, false);
         context.drawText(this.textRenderer, "NBT:", col2X, startY + 162, 0xFF9CA3AF, false);
+
+        
 
         // Apply Level reward button (aligned to X + 135)
         int saveW = 85;
@@ -842,9 +985,11 @@ public class AdminPanelScreen extends Screen {
             Quest q = localQuests.get(selectedQuestIndex);
             q.setTitle(questTitleField.getText());
             q.setDescription(questDescField.getText());
-            try {
-                q.setType(Quest.Type.valueOf(questTypeField.getText().toUpperCase().trim()));
-            } catch (Exception e) {}
+            if (questTypeButton != null) {
+                try {
+                    q.setType(Quest.Type.valueOf(questTypeButton.getMessage().getString().toUpperCase().trim()));
+                } catch (Exception e) {}
+            }
             q.setTarget(questTargetField.getText().trim());
             try {
                 q.setRequiredAmount(Integer.parseInt(questReqField.getText().trim()));
@@ -852,7 +997,9 @@ public class AdminPanelScreen extends Screen {
             try {
                 q.setXpReward(Integer.parseInt(questXpField.getText().trim()));
             } catch (Exception e) {}
-            q.setCategory(questCatField.getText().toUpperCase().trim());
+            if (questCatButton != null) {
+                q.setCategory(questCatButton.getMessage().getString().toUpperCase().trim());
+            }
         }
     }
 
@@ -874,11 +1021,11 @@ public class AdminPanelScreen extends Screen {
             } catch (Exception e) {}
 
             // Free Reward
-            String freeType = freeTypeField.getText().trim().toUpperCase();
+            String freeType = freeTypeButton != null ? freeTypeButton.getMessage().getString().trim().toUpperCase() : "NONE";
             String freeTemp = freeTempField.getText().trim();
-            if (!freeType.isEmpty() || !freeTemp.isEmpty()) {
+            if (!freeType.equals("NONE") || !freeTemp.isEmpty()) {
                 try {
-                    Reward.Type t = freeType.isEmpty() ? Reward.Type.ITEM : Reward.Type.valueOf(freeType);
+                    Reward.Type t = freeType.equals("NONE") ? Reward.Type.ITEM : Reward.Type.valueOf(freeType);
                     String val = freeValField.getText().trim();
                     int amt = 1;
                     try {
@@ -899,11 +1046,11 @@ public class AdminPanelScreen extends Screen {
             }
 
             // Premium Reward
-            String premType = premTypeField.getText().trim().toUpperCase();
+            String premType = premTypeButton != null ? premTypeButton.getMessage().getString().trim().toUpperCase() : "NONE";
             String premTemp = premTempField.getText().trim();
-            if (!premType.isEmpty() || !premTemp.isEmpty()) {
+            if (!premType.equals("NONE") || !premTemp.isEmpty()) {
                 try {
-                    Reward.Type t = premType.isEmpty() ? Reward.Type.ITEM : Reward.Type.valueOf(premType);
+                    Reward.Type t = premType.equals("NONE") ? Reward.Type.ITEM : Reward.Type.valueOf(premType);
                     String val = premValField.getText().trim();
                     int amt = 1;
                     try {

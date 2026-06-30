@@ -59,6 +59,7 @@ public class CobblePassServer implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(NetworkPackets.SaveRewardsPayload.TYPE, NetworkPackets.SaveRewardsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.SaveConfigPayload.TYPE, NetworkPackets.SaveConfigPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetworkPackets.RequestFullQuestsPayload.TYPE, NetworkPackets.RequestFullQuestsPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NetworkPackets.TogglePinQuestPayload.TYPE, NetworkPackets.TogglePinQuestPayload.CODEC);
 
         // 3. Register Network Packet Receivers
         ServerPlayNetworking.registerGlobalReceiver(NetworkPackets.RequestFullQuestsPayload.TYPE, (payload, context) -> {
@@ -122,6 +123,17 @@ public class CobblePassServer implements ModInitializer {
                     DataManager.reloadConfigs(context.server());
                 });
             }
+        });
+
+        ServerPlayNetworking.registerGlobalReceiver(NetworkPackets.TogglePinQuestPayload.TYPE, (payload, context) -> {
+            ServerPlayerEntity player = context.player();
+            String questId = payload.questId();
+            context.server().execute(() -> {
+                PlayerProgress progress = DataManager.getProgress(player.getUuid());
+                progress.togglePinQuest(questId);
+                DataManager.saveProgress(progress);
+                syncPlayerProgress(player);
+            });
         });
 
         // 4. Register Event Listeners

@@ -20,6 +20,14 @@ import com.cobblemon.mod.common.api.events.battles.BattleFaintedEvent;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.battles.BattleSide;
+import com.cobblemon.mod.common.api.events.pokemon.FossilRevivedEvent;
+import com.cobblemon.mod.common.api.events.pokemon.CollectEggEvent;
+import com.cobblemon.mod.common.api.events.pokemon.EvGainedEvent;
+import com.cobblemon.mod.common.api.events.pokemon.LevelUpEvent;
+import com.cobblemon.mod.common.api.pokemon.egg.EggGroup;
+import com.cobblemon.mod.common.api.pokemon.evolution.ContextEvolution;
+import com.cobblemon.mod.common.pokemon.requirements.FriendshipRequirement;
+import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 
 public class QuestListener {
 
@@ -77,7 +85,7 @@ public class QuestListener {
                 if (CobblePassServer.server != null) {
                     ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(pokemon.getOwnerUUID());
                     if (player != null) {
-                        handleEvolution(player, pokemon);
+                        handleEvolution(player, event);
                     }
                 }
             }
@@ -144,6 +152,59 @@ public class QuestListener {
             }
             return kotlin.Unit.INSTANCE;
         });
+
+        // 8. Cobblemon: Fossil Revived
+        CobblemonEvents.FOSSIL_REVIVED.subscribe(Priority.NORMAL, event -> {
+            if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
+            ServerPlayerEntity player = event.getPlayer();
+            Pokemon pokemon = event.getPokemon();
+            if (player != null && pokemon != null) {
+                handleFossilRevived(player, pokemon);
+            }
+            return kotlin.Unit.INSTANCE;
+        });
+
+        // 9. Cobblemon: Collect Egg
+        CobblemonEvents.COLLECT_EGG.subscribe(Priority.NORMAL, event -> {
+            if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
+            ServerPlayerEntity player = event.getPlayer();
+            Pokemon male = event.getMaleParent();
+            Pokemon female = event.getFemaleParent();
+            if (player != null) {
+                handleCollectEgg(player, male, female);
+            }
+            return kotlin.Unit.INSTANCE;
+        });
+
+        // 10. Cobblemon: EV Gained
+        CobblemonEvents.EV_GAINED_EVENT_POST.subscribe(Priority.NORMAL, event -> {
+            if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
+            Pokemon pokemon = event.getPokemon();
+            if (pokemon != null && pokemon.getOwnerUUID() != null) {
+                if (CobblePassServer.server != null) {
+                    ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(pokemon.getOwnerUUID());
+                    if (player != null) {
+                        handleEvGained(player, pokemon);
+                    }
+                }
+            }
+            return kotlin.Unit.INSTANCE;
+        });
+
+        // 11. Cobblemon: Level Up
+        CobblemonEvents.LEVEL_UP_EVENT.subscribe(Priority.NORMAL, event -> {
+            if (!DataManager.isSeasonActive()) return kotlin.Unit.INSTANCE;
+            Pokemon pokemon = event.getPokemon();
+            if (pokemon != null && pokemon.getOwnerUUID() != null) {
+                if (CobblePassServer.server != null) {
+                    ServerPlayerEntity player = CobblePassServer.server.getPlayerManager().getPlayer(pokemon.getOwnerUUID());
+                    if (player != null) {
+                        handleEvGained(player, pokemon);
+                    }
+                }
+            }
+            return kotlin.Unit.INSTANCE;
+        });
     }
 
     private static boolean matchesPokemon(Quest quest, Pokemon pokemon) {
@@ -174,6 +235,7 @@ public class QuestListener {
                 incrementProgress(player, quest);
             }
         }
+        checkPerfectIvs(player, pokemon);
 
         // Passive XP for capture: +5 XP (action bar)
         DataManager.addXp(player, 5);
@@ -189,11 +251,33 @@ public class QuestListener {
         }
     }
 
-    private static void handleEvolution(ServerPlayerEntity player, Pokemon pokemon) {
+    private static void handleEvolution(ServerPlayerEntity player, EvolutionCompleteEvent event) {
+        Pokemon pokemon = event.getPokemon();
         List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
         for (Quest quest : activeQuests) {
             if (quest.getType() == Quest.Type.EVOLVE_POKEMON && matchesPokemon(quest, pokemon)) {
                 incrementProgress(player, quest);
+            } else if (quest.getType() == Quest.Type.EVOLVE_STONE && matchesPokemon(quest, pokemon)) {
+                if (event.getEvolution() instanceof ContextEvolution) {
+                    Object context = ((ContextEvolution<?, ?>) event.getEvolution()).getRequiredContext();
+                    if (context != null) {
+                        String ctxStr = context.toString().toLowerCase();
+                        if (ctxStr.contains("stone")) {
+                            incrementProgress(player, quest);
+                        }
+                    }
+                }
+            } else if (quest.getType() == Quest.Type.EVOLVE_FRIENDSHIP && matchesPokemon(quest, pokemon)) {
+                boolean hasFriendshipReq = false;
+                for (com.cobblemon.mod.common.api.pokemon.requirement.Requirement req : event.getEvolution().getRequirements()) {
+                    if (req instanceof FriendshipRequirement) {
+                        hasFriendshipReq = true;
+                        break;
+                    }
+                }
+                if (hasFriendshipReq) {
+                    incrementProgress(player, quest);
+                }
             }
         }
 
@@ -222,10 +306,106 @@ public class QuestListener {
                 incrementProgress(player, quest);
             }
         }
+        checkPerfectIvs(player, pokemon);
 
         // Passive XP for hatching: +15 XP (action bar)
         DataManager.addXp(player, 15);
         player.sendMessage(Text.literal("§a+15 XP (Eclosión)"), true);
+    }
+
+    private static void handleFossilRevived(ServerPlayerEntity player, Pokemon pokemon) {
+        List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
+        for (Quest quest : activeQuests) {
+            if (quest.getType() == Quest.Type.RESURRECT_FOSSIL && matchesPokemon(quest, pokemon)) {
+                incrementProgress(player, quest);
+            }
+        }
+    }
+
+    private static void handleCollectEgg(ServerPlayerEntity player, Pokemon male, Pokemon female) {
+        if (male == null || female == null) return;
+        List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
+        for (Quest quest : activeQuests) {
+            if (quest.getType() == Quest.Type.BREED_POKEMON) {
+                String targetGroup = quest.getTarget().toLowerCase();
+                boolean matches = false;
+                if (targetGroup.equals("any")) {
+                    matches = true;
+                } else {
+                    for (EggGroup eg : male.getSpecies().getEggGroups()) {
+                        if (eg.name().toLowerCase().equals(targetGroup) || eg.getShowdownID().toLowerCase().equals(targetGroup)) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (!matches) {
+                        for (EggGroup eg : female.getSpecies().getEggGroups()) {
+                            if (eg.name().toLowerCase().equals(targetGroup) || eg.getShowdownID().toLowerCase().equals(targetGroup)) {
+                                matches = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (matches) {
+                    incrementProgress(player, quest);
+                }
+            }
+        }
+    }
+
+    private static void handleEvGained(ServerPlayerEntity player, Pokemon pokemon) {
+        List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
+        for (Quest quest : activeQuests) {
+            if (quest.getType() == Quest.Type.MAX_EV_POKEMON) {
+                String statTarget = quest.getTarget().toLowerCase();
+                boolean met = false;
+                if (statTarget.equals("any")) {
+                    for (Stats stat : Stats.values()) {
+                        if (pokemon.getEvs().getOrDefault(stat) >= 252) {
+                            met = true;
+                            break;
+                        }
+                    }
+                } else {
+                    for (Stats stat : Stats.values()) {
+                        if (stat.name().toLowerCase().equals(statTarget) || stat.getShowdownId().toLowerCase().equals(statTarget)) {
+                            if (pokemon.getEvs().getOrDefault(stat) >= 252) {
+                                met = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (met) {
+                    incrementProgress(player, quest);
+                }
+            }
+        }
+    }
+
+    private static void checkPerfectIvs(ServerPlayerEntity player, Pokemon pokemon) {
+        List<Quest> activeQuests = DataManager.getActiveQuestsForPlayer(player);
+        for (Quest quest : activeQuests) {
+            if (quest.getType() == Quest.Type.PERFECT_IV_POKEMON) {
+                int requiredPerfect = 1;
+                try {
+                    requiredPerfect = Integer.parseInt(quest.getTarget().trim());
+                } catch (NumberFormatException e) {
+                    // fallback if not a number
+                }
+
+                int perfectCount = 0;
+                for (Stats stat : Stats.values()) {
+                    if (pokemon.getIvs().getOrDefault(stat) >= 31) {
+                        perfectCount++;
+                    }
+                }
+                if (perfectCount >= requiredPerfect) {
+                    incrementProgress(player, quest);
+                }
+            }
+        }
     }
 
     public static void handleCraft(ServerPlayerEntity player, Identifier itemId, int amount) {

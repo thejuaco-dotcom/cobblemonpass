@@ -296,9 +296,15 @@ public class BattlePassScreen extends Screen {
             context.fill(cardX, cardY, cardX + cardW, cardY + cardHeight, 0xFF222530);
             context.fill(cardX, cardY, cardX + 3, cardY + cardHeight, 0xFFE13B36);
 
+            // Star Icon
+            boolean isPinned = progress.getPinnedQuests().contains(quest.getId());
+            String star = isPinned ? "★" : "☆";
+            int starColor = isPinned ? 0xFFFDE047 : 0xFF9CA3AF;
+            context.drawText(this.textRenderer, star, cardX + 10, cardY + 3, starColor, false);
+
             // Quest Title
-            String title = truncateText(quest.getTitle(), 290);
-            context.drawText(this.textRenderer, title, cardX + 10, cardY + 3, 0xFFFFFFFF, false);
+            String title = truncateText(quest.getTitle(), 270);
+            context.drawText(this.textRenderer, title, cardX + 22, cardY + 3, 0xFFFFFFFF, false);
             // Quest Description
             String desc = truncateText(quest.getDescription(), 290);
             context.drawText(this.textRenderer, desc, cardX + 10, cardY + 12, 0xFF9CA3AF, false);
@@ -644,6 +650,26 @@ public class BattlePassScreen extends Screen {
                     playClickSound();
                 }
                 return true;
+            }
+            // Click card star pins
+            List<Quest> filtered = getFilteredQuests();
+            int startIdx = questPage * 4;
+            for (int i = 0; i < 4; i++) {
+                int idx = startIdx + i;
+                if (idx >= filtered.size()) break;
+
+                int cardX = startX + 15;
+                int cardY = startY + 65 + i * 36;
+                int starX = cardX + 10;
+                int starY = cardY + 3;
+
+                // Click detection for star icon
+                if (mouseX >= starX - 2 && mouseX <= starX + 12 && mouseY >= starY - 2 && mouseY <= starY + 12) {
+                    Quest quest = filtered.get(idx);
+                    CobblePassClient.togglePinQuest(quest.getId());
+                    playClickSound();
+                    return true;
+                }
             }
         }
 

@@ -169,4 +169,27 @@ public class PlayerProgress {
 
         return changed;
     }
+
+    private java.util.List<String> pinnedQuests = new java.util.ArrayList<>();
+
+    public java.util.List<String> getPinnedQuests() {
+        if (pinnedQuests == null) {
+            pinnedQuests = new java.util.ArrayList<>();
+        }
+        return pinnedQuests;
+    }
+
+    public void setPinnedQuests(java.util.List<String> pinnedQuests) {
+        this.pinnedQuests = pinnedQuests;
+    }
+
+    public void togglePinQuest(String questId) {
+        if (getPinnedQuests().contains(questId)) {
+            pinnedQuests.remove(questId);
+        } else {
+            if (pinnedQuests.size() < 3) {
+                pinnedQuests.add(questId);
+            }
+        }
+    }
 }
