@@ -12,7 +12,6 @@
 * **Soporte Inteligente de NBT y Data Components**:
   * Diseñado específicamente para Minecraft 1.21.1+ (Data Components).
   * Permite asignar libros encantados, armas personalizadas, pociones o ítems con propiedades NBT específicas en las recompensas.
-  * **Preprocesador de SNBT**: Corrige de manera automática errores comunes de sintaxis (como el uso de `=` en lugar de `:` o la falta de comillas en las claves con namespace como `minecraft:stored_enchantments`).
 * **Tooltips de Ítems en Tiempo Real**: Al pasar el cursor sobre las recompensas de la GUI, se muestra el tooltip flotante nativo de Minecraft con los encantamientos, nombres y descripciones correspondientes.
 * **Guardado Atómico de Progreso**: Sistema avanzado de escritura segura utilizando archivos temporales (`.tmp`) y reemplazo atómico (`ATOMIC_MOVE`), evitando la corrupción de datos y pérdida de progreso de los jugadores ante apagados inesperados o caídas del servidor.
 * **Gestión de Temporadas Automatizada**: Comandos para iniciar, pausar y reiniciar temporadas enteras limpiando el progreso de los jugadores de forma ordenada.
@@ -69,17 +68,3 @@ Para entregar un libro encantado con **Toque de Seda (Silk Touch)**, la recompen
 * **`type`**: Puede ser `ITEM`, `POKEMON` o `COMMAND`.
 * **`value`**: ID base del ítem o Pokémon (ej. `minecraft:diamond` o `abra shiny level=25`).
 * **`nbt`**: El bloque de componentes en formato de texto. El mod lo procesará y convertirá dinámicamente en Data Components nativos para Minecraft 1.21.1.
-
----
-
-## 🛠️ Compilación y Desarrollo
-
-Si deseas compilar el mod desde el código fuente, requiere **JDK 21**. Ejecuta el siguiente comando en la carpeta raíz del proyecto:
-
-```bash
-# En Windows (usando el gradle wrapper local si está disponible o el bat del sistema):
-gradle build
-```
-
-El archivo `.jar` compilado listo para usar se generará en la ruta:
-`build/libs/cobblepass-<version>.jar`
